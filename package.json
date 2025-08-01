@@ -11,7 +11,9 @@
   "dependencies": {
     "@ai-sdk/openai": "^2.0.0",
     "@ai-sdk/react": "^2.0.0",
+    "@convex-dev/auth": "^0.0.88",
     "ai": "^5.0.0",
+    "convex": "^1.25.4",
     "next": "15.4.5",
     "react": "19.1.0",
     "react-dom": "19.1.0"

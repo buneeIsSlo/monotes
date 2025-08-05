@@ -1,0 +1,124 @@
+"use client";
+
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Notebook } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+
+// 1. Zod schema
+const signinSchema = z.object({
+  email: z.email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type SigninValues = z.infer<typeof signinSchema>;
+
+export function SigninForm({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  // 2. Setup form
+  const form = useForm<SigninValues>({
+    resolver: zodResolver(signinSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // 3. Handle submit
+  const onSubmit = (values: SigninValues) => {
+    // TODO: Replace with your sign-in logic
+    console.log(values);
+  };
+
+  return (
+    <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-6"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <a
+              href="#"
+              className="flex flex-col items-center gap-2 font-medium"
+            >
+              <div className="flex size-8 items-center justify-center rounded-md">
+                <Notebook className="size-6" />
+              </div>
+              <span className="sr-only">Monotes</span>
+            </a>
+            <h1 className="text-xl font-bold">Welcome to Monotes</h1>
+            <div className="text-center text-sm">
+              Enter your credentials to get started
+            </div>
+          </div>
+          <div className="flex flex-col gap-6">
+            {/* Email */}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="m@example.com"
+                      autoComplete="email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Your password"
+                      autoComplete="current-password"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting ? "Signing in..." : "Login"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        and <a href="#">Privacy Policy</a>.
+      </div>
+    </div>
+  );
+}

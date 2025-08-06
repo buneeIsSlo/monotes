@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Notebook } from "lucide-react";
+import { Loader, Notebook } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,14 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { useState } from "react";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-// 1. Zod schema
 const signinSchema = z.object({
   email: z.email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 type SigninValues = z.infer<typeof signinSchema>;
@@ -29,7 +32,12 @@ export function SigninForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  // 2. Setup form
+  const [step, setStep] = useState<"signIn" | "signUp">("signIn");
+
+  const { signIn } = useAuthActions();
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+
   const form = useForm<SigninValues>({
     resolver: zodResolver(signinSchema),
     defaultValues: {
@@ -38,10 +46,34 @@ export function SigninForm({
     },
   });
 
-  // 3. Handle submit
-  const onSubmit = (values: SigninValues) => {
-    // TODO: Replace with your sign-in logic
-    console.log(values);
+  const onSubmit = async (values: SigninValues) => {
+    setIsLoading(true);
+    console.log("Wait I did get called");
+    try {
+      await signIn("password", { ...values, flow: step });
+      toast.success(
+        step === "signIn"
+          ? "Signed in Successfully"
+          : "Account created Successfully"
+      );
+      router.push("/");
+    } catch (error) {
+      console.error(error);
+      if (
+        error instanceof Error &&
+        (error.message.includes("InvalidAccountId") ||
+          error.message.includes("InvalidSecret"))
+      ) {
+        form.setError("root", {
+          type: "manual",
+          message: "Invalid credentials",
+        });
+      } else {
+        toast.error("Oops, something went wrong. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -110,7 +142,10 @@ export function SigninForm({
               className="w-full"
               disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting ? "Signing in..." : "Login"}
+              {form.formState.isSubmitting && (
+                <Loader className="animate-spin" />
+              )}
+              {step === "signIn" ? "Sign In" : "Sign Up"}
             </Button>
           </div>
         </form>

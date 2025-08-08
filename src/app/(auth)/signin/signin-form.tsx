@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import type React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader, Notebook } from "lucide-react";
@@ -33,9 +34,7 @@ export function SigninForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [step, setStep] = useState<"signIn" | "signUp">("signIn");
-
   const { signIn } = useAuthActions();
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<SigninValues>({
@@ -47,8 +46,6 @@ export function SigninForm({
   });
 
   const onSubmit = async (values: SigninValues) => {
-    setIsLoading(true);
-    console.log("Wait I did get called");
     try {
       await signIn("password", { ...values, flow: step });
       toast.success(
@@ -72,7 +69,6 @@ export function SigninForm({
         toast.error("Oops, something went wrong. Please try again.");
       }
     } finally {
-      setIsLoading(false);
     }
   };
 
@@ -137,6 +133,11 @@ export function SigninForm({
                 </FormItem>
               )}
             />
+            {form.formState.errors.root && (
+              <div className="text-sm text-destructive">
+                {form.formState.errors.root.message}
+              </div>
+            )}
             <Button
               type="submit"
               className="w-full"
@@ -145,14 +146,25 @@ export function SigninForm({
               {form.formState.isSubmitting && (
                 <Loader className="animate-spin" />
               )}
-              {step === "signIn" ? "Sign In" : "Sign Up"}
+              {step === "signIn" ? "Sign In" : "Create Account"}
             </Button>
           </div>
         </form>
       </Form>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
+      <div className="text-muted-foreground text-center text-xs text-balance">
+        <Button
+          variant="link"
+          type="button"
+          className="w-full text-sm text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            setStep(step === "signIn" ? "signUp" : "signIn");
+            form.reset();
+          }}
+        >
+          {step === "signIn"
+            ? "Don't have an account? Create one."
+            : "Already have an account? Sign In."}
+        </Button>
       </div>
     </div>
   );

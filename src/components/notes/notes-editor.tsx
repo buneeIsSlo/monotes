@@ -17,6 +17,7 @@ const baseTheme = EditorView.theme(
       fontFamily: "inherit",
       outline: "none",
       border: "none",
+      backgroundColor: "transparent",
     },
     ".cm-content": { color: "inherit", fontFamily: "inherit" },
     ".cm-scroller": { fontFamily: "inherit" },

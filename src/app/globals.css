@@ -168,3 +168,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Container query context for the editor */
+.cm-container {
+  container-type: inline-size;
+}

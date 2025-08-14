@@ -3,7 +3,7 @@ import ThemeToggeler from "@/components/theme-toggeler";
 
 export default function Home() {
   return (
-    <main className="p-8 max-w-3xl mx-auto">
+    <main className="p-4 sm:p-8 md:max-w-4xl mx-auto">
       <NotesEditor />
       <ThemeToggeler />
     </main>

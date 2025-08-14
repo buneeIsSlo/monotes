@@ -22,6 +22,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-toggle": "^1.1.9",
     "@replit/codemirror-vim": "^6.3.0",
+    "@uiw/codemirror-themes": "^4.25.1",
     "@uiw/react-codemirror": "^4.24.2",
     "ai": "^5.0.0",
     "class-variance-authority": "^0.7.1",

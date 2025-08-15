@@ -173,3 +173,15 @@
 .cm-container {
   container-type: inline-size;
 }
+
+@layer base {
+  /* Vim normal-mode block cursor (short, Tailwind-applied) */
+  .cm-editor .cm-fat-cursor {
+    @apply !bg-[var(--primary)] !text-[var(--primary-foreground)] !outline-none !border-0;
+  }
+
+  /* Insert-mode caret styling */
+  .cm-editor .cm-cursor {
+    @apply !border-l-2 !border-[var(--primary)] !caret-[var(--primary)];
+  }
+}

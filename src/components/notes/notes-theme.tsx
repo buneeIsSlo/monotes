@@ -15,6 +15,11 @@ export const cmAppearanceTheme = EditorView.theme(
     },
     ".cm-content": { color: "inherit", fontFamily: "inherit" },
     ".cm-scroller": { fontFamily: "inherit" },
+    ".cm-content::after": {
+      content: '""',
+      display: "block",
+      height: "25vh",
+    },
   },
   { dark: false }
 );

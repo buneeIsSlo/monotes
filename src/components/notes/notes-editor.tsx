@@ -1,25 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import CodeMirror, { EditorSelection } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
-import { keymap } from "@codemirror/view";
+import { EditorView, keymap } from "@codemirror/view";
 import { vim, Vim } from "@replit/codemirror-vim";
 import { toast } from "sonner";
 import { editorThemeExtensions } from "./notes-theme";
+import { useLocalNote } from "@/hooks/useLocalNote";
 
-export default function NotesEditor() {
-  const [value, setValue] = useState<string>("# Untitled\n\n- Today's plan...");
+export default function NotesEditor({ noteId }: { noteId?: string }) {
+  const id = noteId ?? "local-default";
+  const { note, setMarkdown, saveNow } = useLocalNote(id);
 
-  const handleSave = () => {
-    // TODO: replace with real save later
+  const handleSave = useCallback(() => {
+    saveNow();
     toast.success("Saved");
     return true;
-  };
+  }, [saveNow]);
 
   useEffect(() => {
     Vim.defineEx("write", "w", handleSave);
-  }, []);
+  }, [handleSave]);
 
   const extensions = useMemo(
     () => [
@@ -28,16 +30,18 @@ export default function NotesEditor() {
       ...editorThemeExtensions(),
       keymap.of([{ key: "Mod-s", run: handleSave, preventDefault: true }]),
     ],
-    []
+    [handleSave]
   );
 
+  if (!note) return null;
+
   return (
-    <div className="editor-shell">
+    <div className="editor-shell py-12">
       <CodeMirror
         placeholder={"Start typing"}
         className="cm-container md:max-w-4xl text-xs sm:text-sm md:text-base"
-        value={value}
-        onChange={setValue}
+        value={note?.content ?? ""}
+        onChange={setMarkdown}
         extensions={extensions}
         basicSetup={{
           lineNumbers: false,
@@ -49,10 +53,10 @@ export default function NotesEditor() {
         }}
         onCreateEditor={(view) => {
           view.focus();
+          const pos = view.state.doc.length;
           view.dispatch({
-            selection: EditorSelection.cursor(
-              view.state.doc.sliceString(0).length
-            ),
+            selection: EditorSelection.cursor(pos),
+            effects: EditorView.scrollIntoView(pos, { y: "center" }),
           });
         }}
       />

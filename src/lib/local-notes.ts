@@ -1,14 +1,10 @@
 import { getDB, type NoteContent } from "./local-db";
 import { generateSlug } from "./ids";
 
-export async function getOrCreateNote(slug: string): Promise<NoteContent> {
+export async function getNote(slug: string): Promise<NoteContent | null> {
   const db = getDB();
   const existingNote = await db.notes.get(slug);
-  if (existingNote) return existingNote;
-  const now = Date.now();
-  const createdNote: NoteContent = { id: slug, content: "", updatedAt: now };
-  await db.notes.put(createdNote);
-  return createdNote;
+  return existingNote ?? null;
 }
 
 export async function saveNote(

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getOrCreateNote, saveNote } from "@/lib/local-notes";
+import { getNote, saveNote } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
 
 function useDebounced<TArgs extends unknown[]>(
@@ -17,14 +17,13 @@ function useDebounced<TArgs extends unknown[]>(
 }
 
 export function useLocalNote(slug: string) {
-  const [note, setNote] = useState<NoteContent | null>(null);
+  const [note, setNote] = useState<NoteContent | null | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const n = await getOrCreateNote(slug);
-      console.log("From local", JSON.stringify(n.content));
-      setNote(n);
+      const existing = await getNote(slug);
+      setNote(existing ?? null);
     })();
   }, [slug]);
 
@@ -55,6 +54,7 @@ export function useLocalNote(slug: string) {
   return useMemo(
     () => ({
       note,
+      isLoading: note === undefined,
       isSaving,
       setMarkdown,
       saveNow,

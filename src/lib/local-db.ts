@@ -4,6 +4,7 @@ export interface NoteContent {
   id: string;
   content: string;
   updatedAt: number;
+  accessKey: string; // Store access key with the note (scrut.ch style)
 }
 
 class MonotesLocalDB extends Dexie {
@@ -13,6 +14,10 @@ class MonotesLocalDB extends Dexie {
     super("monotes-db");
     this.version(1).stores({
       notes: "id,updatedAt",
+    });
+    // Upgrade for accessKey field
+    this.version(2).stores({
+      notes: "id,updatedAt,accessKey",
     });
   }
 }

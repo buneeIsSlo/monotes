@@ -34,7 +34,7 @@ export default function NotesEditor({ noteId }: { noteId?: string }) {
     [handleSave]
   );
 
-  if (!note) return null;
+  // Always render editor; the hook will create an in-memory note on first input
 
   return (
     <div className="editor-shell">

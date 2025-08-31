@@ -19,7 +19,7 @@ export default function Navbar({ onSidebarToggle }: NavbarProps) {
 
   const onCreateNew = async () => {
     const note = await createNewNote();
-    router.push(`/${note.id}`);
+    router.push(`${note.id}#${note.accessKey}`); // Navigate with access key in hash
   };
 
   return (

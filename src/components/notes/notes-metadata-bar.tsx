@@ -25,7 +25,7 @@ export default function NotesMetadataBar({
         hour12: true,
       });
 
-      return `${day}-${month}-${year} · ${time}`;
+      return `${time} · ${day}-${month}-${year}`;
     } catch {
       return "unknown";
     }

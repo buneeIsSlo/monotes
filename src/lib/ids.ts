@@ -8,3 +8,7 @@ const nanoid10 = customAlphabet(alphabet, 10);
 export function generateSlug(): string {
   return nanoid10();
 }
+
+export function isValidSlug(slug: string): boolean {
+  return /^[0-9A-Za-z]{10}$/.test(slug);
+}

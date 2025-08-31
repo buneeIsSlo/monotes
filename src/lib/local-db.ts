@@ -4,6 +4,7 @@ export interface NoteContent {
   id: string;
   content: string;
   updatedAt: number;
+  accessKey: string;
 }
 
 class MonotesLocalDB extends Dexie {
@@ -12,7 +13,7 @@ class MonotesLocalDB extends Dexie {
   constructor() {
     super("monotes-db");
     this.version(1).stores({
-      notes: "id,updatedAt",
+      notes: "id,updatedAt,accessKey",
     });
   }
 }

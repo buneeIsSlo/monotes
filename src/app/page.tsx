@@ -2,14 +2,18 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { generateSlug } from "@/lib/ids";
+import { createNewNote } from "@/lib/local-notes";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const noteId = generateSlug();
-    router.replace(`/${noteId}`);
+    const createAndNavigate = async () => {
+      const note = await createNewNote();
+      router.replace(`/${note.id}#${note.accessKey}`);
+    };
+
+    createAndNavigate();
   }, [router]);
 
   return (

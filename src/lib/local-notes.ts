@@ -1,6 +1,5 @@
 import { getDB, type NoteContent } from "./local-db";
-import { generateSlug } from "./ids";
-import { generateAccessKey, storeNoteWithKey } from "./access";
+import { generateAccessKey, registerTempKey } from "./access";
 
 export async function getNote(slug: string): Promise<NoteContent | null> {
   const db = getDB();
@@ -26,9 +25,14 @@ export async function saveNote(
   return updatedNote;
 }
 
-export async function createNewNote(): Promise<NoteContent> {
-  const slug = generateSlug();
+export async function createNewNote(slug: string): Promise<NoteContent> {
   const accessKey = generateAccessKey();
-  const note = await storeNoteWithKey(slug, accessKey);
-  return note;
+  registerTempKey(slug, accessKey);
+  // Return an in-memory (ephemeral) note. Do not persist yet.
+  return {
+    id: slug,
+    accessKey,
+    content: "",
+    updatedAt: Date.now(),
+  };
 }

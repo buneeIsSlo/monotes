@@ -9,6 +9,7 @@ import {
 import ThemeToggeler from "@/components/theme-toggeler";
 import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
+import { generateSlug } from "@/lib/ids";
 
 interface NavbarProps {
   onSidebarToggle: () => void;
@@ -18,7 +19,8 @@ export default function Navbar({ onSidebarToggle }: NavbarProps) {
   const router = useRouter();
 
   const onCreateNew = async () => {
-    const note = await createNewNote();
+    const slug = generateSlug();
+    const note = await createNewNote(slug);
     router.push(`${note.id}#${note.accessKey}`); // Navigate with access key in hash
   };
 

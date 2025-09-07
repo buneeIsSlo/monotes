@@ -10,21 +10,24 @@ import { hasAccess } from "@/lib/access";
 
 export default function Note() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [accessKey, setAccessKey] = useState<string | null>(null);
   const [userHasAccess, setUserHasAccess] = useState<boolean | null>(null);
   const params = useParams<{ id: string }>();
   const id = params?.id;
 
+  // check access once on mount
   useEffect(() => {
     const checkAccess = async () => {
       if (id && isValidSlug(id)) {
         const hash =
           typeof window !== "undefined" ? window.location.hash.slice(1) : null;
-
+        setAccessKey(hash);
         const access = await hasAccess(id, hash);
-        setUserHasAccess(access);
 
-        if (hash && access && typeof window !== "undefined")
+        setUserHasAccess(access);
+        if (hash && access && typeof window !== "undefined") {
           window.history.replaceState(null, "", `/${id}`);
+        }
       } else {
         setUserHasAccess(false);
       }
@@ -33,13 +36,14 @@ export default function Note() {
     checkAccess();
   }, [id]);
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
-  const { isLoading } = useLocalNote(userHasAccess && id ? id : "");
+  const { note, isLoading } = useLocalNote(
+    userHasAccess && id ? id : "",
+    accessKey ?? undefined
+  );
 
-  // Validate slug format
+  // invalid slug format
   if (id && !isValidSlug(id)) {
     return (
       <div className="bg-background p-2">
@@ -55,7 +59,7 @@ export default function Note() {
     );
   }
 
-  // Show loading while checking access
+  // still checking access
   if (userHasAccess === null) {
     return (
       <div className="bg-background p-2">
@@ -71,6 +75,7 @@ export default function Note() {
     );
   }
 
+  // access denied
   if (id && !userHasAccess) {
     return (
       <div className="bg-background p-2">
@@ -90,12 +95,33 @@ export default function Note() {
     );
   }
 
+  // note not found in IndexedDB
+  if (id && userHasAccess && note === null) {
+    return (
+      <div className="bg-background p-2">
+        <Navbar onSidebarToggle={toggleSidebar} />
+        <main className="flex">
+          <section className="flex-1 md:max-w-4xl mx-auto">
+            <div className="py-12 text-center text-muted-foreground">
+              <div className="mb-4">❌ Note not found</div>
+              <div>
+                This note doesn’t exist locally. Create a new one instead.
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background p-2">
       <Navbar onSidebarToggle={toggleSidebar} />
       <main className="flex">
         <section className="flex-1 md:max-w-4xl mx-auto">
-          {isLoading ? null : <NotesEditor noteId={id} />}
+          {isLoading ? null : (
+            <NotesEditor noteId={id} accessKey={accessKey ?? undefined} />
+          )}
         </section>
       </main>
     </div>

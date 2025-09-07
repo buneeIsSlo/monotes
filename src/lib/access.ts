@@ -5,6 +5,18 @@ export function generateAccessKey(): string {
   return uuidv4();
 }
 
+// In-memory registry of temporary keys created client-side before first save.
+// This allows access on the initial redirect from `/` without persisting.
+const tempAccessKeys: Map<string, string> = new Map();
+
+export function registerTempKey(noteId: string, key: string): void {
+  tempAccessKeys.set(noteId, key);
+}
+
+export function getTempKey(noteId: string): string | undefined {
+  return tempAccessKeys.get(noteId);
+}
+
 export async function storeNoteWithKey(
   noteId: string,
   accessKey: string,
@@ -18,6 +30,7 @@ export async function storeNoteWithKey(
     updatedAt: now,
     accessKey,
   };
+
   await db.notes.put(note);
   return note;
 }
@@ -31,16 +44,16 @@ export async function hasAccess(
   const db = getDB();
   const existingNote = await db.notes.get(noteId);
 
-  // If note exists in IndexedDB, simply return true
-  if (existingNote) return true;
-
-  // If URL provides a valid key, create acces by storing the note
-  if (urlKey && isValidAccessKey(urlKey)) {
-    await storeNoteWithKey(noteId, urlKey);
-    return true;
+  // If the note exists, require the provided key to match exactly
+  if (existingNote) {
+    if (!urlKey) return true;
+    return existingNote.accessKey === urlKey;
   }
 
-  return false;
+  // If the note does not exist yet, allow access only if the key matches
+  // a locally registered temporary key (and is structurally valid)
+  const tempKey = getTempKey(noteId);
+  return !!tempKey && tempKey === urlKey && isValidAccessKey(urlKey);
 }
 
 function isValidAccessKey(key: string): boolean {

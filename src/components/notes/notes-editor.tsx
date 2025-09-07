@@ -10,9 +10,14 @@ import { editorThemeExtensions } from "./notes-theme";
 import { useLocalNote } from "@/hooks/useLocalNote";
 import NotesMetadataBar from "./notes-metadata-bar";
 
-export default function NotesEditor({ noteId }: { noteId?: string }) {
+interface NotesEditorProps {
+  noteId: string;
+  accessKey?: string;
+}
+
+export default function NotesEditor({ noteId, accessKey }: NotesEditorProps) {
   const id = noteId ?? "local-default";
-  const { note, setMarkdown, saveNow } = useLocalNote(id);
+  const { note, setMarkdown, saveNow } = useLocalNote(id, accessKey);
 
   const handleSave = useCallback(() => {
     saveNow();

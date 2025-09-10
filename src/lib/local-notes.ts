@@ -36,3 +36,9 @@ export async function createNewNote(slug: string): Promise<NoteContent> {
     updatedAt: Date.now(),
   };
 }
+
+export async function listNotes(): Promise<NoteContent[]> {
+  const db = getDB();
+  // Return all persisted notes ordered by most recently updated first
+  return db.notes.orderBy("updatedAt").reverse().toArray();
+}

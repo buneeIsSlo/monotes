@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getNote, saveNote } from "@/lib/local-notes";
-import { storeNoteWithKey } from "@/lib/access";
 import type { NoteContent } from "@/lib/local-db";
 
 function useDebounced<TArgs extends unknown[]>(
@@ -17,7 +16,7 @@ function useDebounced<TArgs extends unknown[]>(
   );
 }
 
-export function useLocalNote(slug: string, accessKey?: string) {
+export function useLocalNote(slug: string) {
   const [note, setNote] = useState<NoteContent | null | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -34,48 +33,29 @@ export function useLocalNote(slug: string, accessKey?: string) {
         return;
       }
 
-      // If no existing note but we have an accessKey, create a temporary note in-memory
-      if (accessKey) {
-        const tempNote: NoteContent = {
-          id: slug,
-          content: "",
-          updatedAt: Date.now(),
-          accessKey,
-        };
-        setNote(tempNote);
-        return;
-      }
-
-      setNote(null);
+      // Create a temporary note in-memory
+      const tempNote: NoteContent = {
+        id: slug,
+        content: "",
+        updatedAt: Date.now(),
+        cloudStatus: "local",
+      };
+      setNote(tempNote);
     })();
-  }, [slug, accessKey]);
+  }, [slug]);
 
   const saveNow = useCallback(
     async (content?: string) => {
       if (!note) return;
       setIsSaving(true);
       try {
-        let updated: NoteContent;
-        const existing = await getNote(slug);
-
-        if (existing) {
-          // normal update
-          updated = await saveNote(slug, content ?? note.content);
-        } else {
-          // first save = actually create in IndexedDB
-          updated = await storeNoteWithKey(
-            slug,
-            note.accessKey ?? accessKey ?? "",
-            content ?? note.content
-          );
-        }
-
+        const updated = await saveNote(slug, content ?? note.content);
         setNote(updated);
       } finally {
         setIsSaving(false);
       }
     },
-    [note, slug, accessKey]
+    [note, slug]
   );
 
   const debouncedSave = useDebounced(saveNow, 500);

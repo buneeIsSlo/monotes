@@ -12,7 +12,7 @@ export default function Home() {
     const createAndNavigate = async () => {
       const slug = generateSlug();
       const note = await createNewNote(slug);
-      router.replace(`/${note.id}#${note.accessKey}`);
+      router.replace(`/${note.id}`);
     };
 
     createAndNavigate();

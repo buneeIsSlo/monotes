@@ -4,11 +4,13 @@ import { CounterClockwiseClockIcon } from "@radix-ui/react-icons";
 
 interface NotesMetadataBarProps {
   lastEdited?: number;
+  cloudStatus?: "local" | "synced" | "ai-enabled";
   className?: string;
 }
 
 export default function NotesMetadataBar({
   lastEdited,
+  cloudStatus = "local",
   className = "",
 }: NotesMetadataBarProps) {
   const formatLastEdited = (timestamp: number) => {
@@ -44,10 +46,23 @@ export default function NotesMetadataBar({
         <span>{lastEdited ? formatLastEdited(lastEdited) : "never"}</span>
       </div>
 
-      {/* Future controls will go here */}
+      {/* Cloud status badge */}
       <div className="flex items-center gap-2">
-        {/* Placeholder for public/private toggle */}
-        {/* Placeholder for write/preview mode toggle */}
+        {cloudStatus === "local" && (
+          <span className="text-xs px-2 py-1 rounded-md bg-muted">
+            📱 Local Only
+          </span>
+        )}
+        {cloudStatus === "synced" && (
+          <span className="text-xs px-2 py-1 rounded-md bg-muted">
+            ☁️ Synced
+          </span>
+        )}
+        {cloudStatus === "ai-enabled" && (
+          <span className="text-xs px-2 py-1 rounded-md bg-muted">
+            ✨ AI Enabled
+          </span>
+        )}
       </div>
     </div>
   );

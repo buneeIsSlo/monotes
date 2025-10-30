@@ -1,5 +1,4 @@
 import { getDB, type NoteContent } from "./local-db";
-import { generateAccessKey, registerTempKey } from "./access";
 
 export async function getNote(slug: string): Promise<NoteContent | null> {
   const db = getDB();
@@ -13,27 +12,28 @@ export async function saveNote(
 ): Promise<NoteContent> {
   const db = getDB();
   const existingNote = await db.notes.get(slug);
-  if (!existingNote) {
-    throw new Error(
-      "Cannot save note without access key. Note must exist first."
-    );
-  }
-
   const now = Date.now();
-  const updatedNote: NoteContent = { ...existingNote, content, updatedAt: now };
+
+  const updatedNote: NoteContent = existingNote
+    ? { ...existingNote, content, updatedAt: now }
+    : {
+        id: slug,
+        content,
+        updatedAt: now,
+        cloudStatus: "local",
+      };
+
   await db.notes.put(updatedNote);
   return updatedNote;
 }
 
 export async function createNewNote(slug: string): Promise<NoteContent> {
-  const accessKey = generateAccessKey();
-  registerTempKey(slug, accessKey);
   // Return an in-memory (ephemeral) note. Do not persist yet.
   return {
     id: slug,
-    accessKey,
     content: "",
     updatedAt: Date.now(),
+    cloudStatus: "local",
   };
 }
 

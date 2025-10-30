@@ -12,12 +12,11 @@ import NotesMetadataBar from "./notes-metadata-bar";
 
 interface NotesEditorProps {
   noteId: string;
-  accessKey?: string;
 }
 
-export default function NotesEditor({ noteId, accessKey }: NotesEditorProps) {
+export default function NotesEditor({ noteId }: NotesEditorProps) {
   const id = noteId ?? "local-default";
-  const { note, setMarkdown, saveNow } = useLocalNote(id, accessKey);
+  const { note, setMarkdown, saveNow } = useLocalNote(id);
 
   const handleSave = useCallback(() => {
     saveNow();
@@ -44,7 +43,10 @@ export default function NotesEditor({ noteId, accessKey }: NotesEditorProps) {
   return (
     <div className="editor-shell">
       <div className="py-12">
-        <NotesMetadataBar lastEdited={note?.updatedAt} />
+        <NotesMetadataBar
+          lastEdited={note?.updatedAt}
+          cloudStatus={note?.cloudStatus}
+        />
         <CodeMirror
           placeholder={"Start typing"}
           className="cm-container md:max-w-4xl text-xs sm:text-sm md:text-base"

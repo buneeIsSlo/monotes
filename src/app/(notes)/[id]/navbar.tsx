@@ -3,20 +3,18 @@
 import { Button } from "@/components/ui/button";
 import {
   MixerHorizontalIcon,
-  HamburgerMenuIcon,
   PlusIcon,
+  HamburgerMenuIcon,
 } from "@radix-ui/react-icons";
 import ThemeToggeler from "@/components/theme-toggeler";
 import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
+import { useSidebar } from "@/components/ui/sidebar";
 
-interface NavbarProps {
-  onSidebarToggle: () => void;
-}
-
-export default function Navbar({ onSidebarToggle }: NavbarProps) {
+export default function Navbar() {
   const router = useRouter();
+  const { toggleSidebar } = useSidebar();
 
   const onCreateNew = async () => {
     const slug = generateSlug();
@@ -29,7 +27,7 @@ export default function Navbar({ onSidebarToggle }: NavbarProps) {
       <Button
         variant="outline"
         size="icon"
-        onClick={onSidebarToggle}
+        onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
         <HamburgerMenuIcon className="size-4" />

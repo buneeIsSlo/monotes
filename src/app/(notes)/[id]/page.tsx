@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Navbar from "@/app/(notes)/[id]/navbar";
 import NotesEditor from "@/components/notes/notes-editor";
 import NotesSidebar from "@/components/notes/notes-sidebar";
@@ -10,11 +9,8 @@ import { useLocalNote } from "@/hooks/useLocalNote";
 import { isValidSlug } from "@/lib/ids";
 
 export default function Note() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const params = useParams<{ id: string }>();
   const id = params?.id;
-
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   // All notes are local-only, no access control needed
   const { note, isLoading } = useLocalNote(id || "");
@@ -23,7 +19,7 @@ export default function Note() {
   if (id && !isValidSlug(id)) {
     return (
       <div className="bg-background p-2">
-        <Navbar onSidebarToggle={toggleSidebar} />
+        <Navbar />
         <main className="flex">
           <section className="flex-1 md:max-w-4xl mx-auto">
             <div className="py-12 text-center text-muted-foreground">
@@ -39,7 +35,7 @@ export default function Note() {
   if (id && note === null && !isLoading) {
     return (
       <div className="bg-background p-2">
-        <Navbar onSidebarToggle={toggleSidebar} />
+        <Navbar />
         <main className="flex">
           <section className="flex-1 md:max-w-4xl mx-auto">
             <div className="py-12 text-center text-muted-foreground">
@@ -55,11 +51,11 @@ export default function Note() {
   }
 
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
+    <SidebarProvider>
       <NotesSidebar />
       <SidebarInset>
         <div className="bg-background p-2">
-          <Navbar onSidebarToggle={toggleSidebar} />
+          <Navbar />
           <main className="flex">
             <section className="flex-1 md:max-w-4xl mx-auto">
               {isLoading ? null : <NotesEditor noteId={id} />}

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   Sidebar,
@@ -13,12 +12,16 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Cross1Icon } from "@radix-ui/react-icons";
 import { listNotes } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
 
 export default function NotesSidebar() {
   const [notes, setNotes] = useState<NoteContent[]>([]);
+  const { toggleSidebar } = useSidebar();
 
   useEffect(() => {
     let isMounted = true;
@@ -26,7 +29,7 @@ export default function NotesSidebar() {
       try {
         const all = await listNotes();
         if (isMounted) setNotes(all);
-      } catch (err) {
+      } catch {
         // ignore
       }
     })();
@@ -38,9 +41,19 @@ export default function NotesSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <Image src="/globe.svg" alt="Monotes" width={20} height={20} />
-          <span className="font-semibold text-sm">Monotes</span>
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={toggleSidebar}
+            aria-label="Toggle sidebar"
+          >
+            <Cross1Icon className="size-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-sm">Monotes</span>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -50,15 +63,15 @@ export default function NotesSidebar() {
             <SidebarMenu>
               {notes.map((n) => (
                 <SidebarMenuItem key={n.id}>
-                  <Link href={`/${n.id}`} className="w-full">
-                    <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild>
+                    <Link href={`/${n.id}`} className="w-full">
                       <span>
                         {n.content?.trim()
                           ? n.content.split("\n")[0].slice(0, 80)
                           : n.id}
                       </span>
-                    </SidebarMenuButton>
-                  </Link>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
               {notes.length === 0 && (

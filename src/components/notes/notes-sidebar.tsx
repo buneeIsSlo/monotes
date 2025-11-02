@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   useSidebar,
+  SidebarRail,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Cross1Icon } from "@radix-ui/react-icons";
@@ -58,17 +59,20 @@ export default function NotesSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Notes</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-foreground">
+            Notes
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {notes.map((n) => (
                 <SidebarMenuItem key={n.id}>
                   <SidebarMenuButton asChild>
-                    <Link href={`/${n.id}`} className="w-full">
-                      <span>
-                        {n.content?.trim()
-                          ? n.content.split("\n")[0].slice(0, 80)
-                          : n.id}
+                    <Link
+                      href={`/${n.id}`}
+                      className="[&:hover_span]:text-foreground group"
+                    >
+                      <span className="truncate text-sidebar-foreground/70 transition-colors">
+                        {n.content?.trim() ? n.content.split("\n")[0] : n.id}
                       </span>
                     </Link>
                   </SidebarMenuButton>
@@ -83,6 +87,7 @@ export default function NotesSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarRail />
     </Sidebar>
   );
 }

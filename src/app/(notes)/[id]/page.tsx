@@ -2,8 +2,6 @@
 
 import Navbar from "@/app/(notes)/[id]/navbar";
 import NotesEditor from "@/components/notes/notes-editor";
-import NotesSidebar from "@/components/notes/notes-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { useParams } from "next/navigation";
 import { useLocalNote } from "@/hooks/useLocalNote";
 import { isValidSlug } from "@/lib/ids";
@@ -51,18 +49,13 @@ export default function Note() {
   }
 
   return (
-    <SidebarProvider>
-      <NotesSidebar />
-      <SidebarInset>
-        <div className="bg-background p-2">
-          <Navbar />
-          <main className="flex">
-            <section className="flex-1 md:max-w-4xl mx-auto">
-              {isLoading ? null : <NotesEditor noteId={id} />}
-            </section>
-          </main>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="bg-background p-2">
+      <Navbar />
+      <main className="flex">
+        <section className="flex-1 md:max-w-4xl mx-auto">
+          {isLoading ? null : <NotesEditor noteId={id} />}
+        </section>
+      </main>
+    </div>
   );
 }

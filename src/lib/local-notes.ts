@@ -1,4 +1,5 @@
 import { getDB, type NoteContent } from "./local-db";
+import { removeFromCreationWhitelist } from "./creation-whitelist";
 
 export async function getNote(slug: string): Promise<NoteContent | null> {
   const db = getDB();
@@ -24,11 +25,17 @@ export async function saveNote(
       };
 
   await db.notes.put(updatedNote);
+
+  removeFromCreationWhitelist(slug);
+
   return updatedNote;
 }
 
 export async function createNewNote(slug: string): Promise<NoteContent> {
-  // Return an in-memory (ephemeral) note. Do not persist yet.
+  // Note will be saved to IndexedDB on first edit
+  const { addToCreationWhitelist } = await import("./creation-whitelist");
+  addToCreationWhitelist(slug);
+
   return {
     id: slug,
     content: "",
@@ -39,6 +46,5 @@ export async function createNewNote(slug: string): Promise<NoteContent> {
 
 export async function listNotes(): Promise<NoteContent[]> {
   const db = getDB();
-  // Return all persisted notes ordered by most recently updated first
   return db.notes.orderBy("updatedAt").reverse().toArray();
 }

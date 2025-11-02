@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getNote, saveNote } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
+import { isInCreationWhitelist } from "@/lib/creation-whitelist";
 
 function useDebounced<TArgs extends unknown[]>(
   fn: (...args: TArgs) => void,
@@ -30,17 +31,18 @@ export function useLocalNote(slug: string) {
       const existing = await getNote(slug);
       if (existing) {
         setNote(existing);
-        return;
+      } else if (isInCreationWhitelist(slug)) {
+        // Slug is whitelisted - create temp in-memory note for lazy persistence
+        const tempNote: NoteContent = {
+          id: slug,
+          content: "",
+          updatedAt: Date.now(),
+          cloudStatus: "local",
+        };
+        setNote(tempNote);
+      } else {
+        setNote(null);
       }
-
-      // Create a temporary note in-memory
-      const tempNote: NoteContent = {
-        id: slug,
-        content: "",
-        updatedAt: Date.now(),
-        cloudStatus: "local",
-      };
-      setNote(tempNote);
     })();
   }, [slug]);
 

@@ -5,13 +5,16 @@ import {
 } from "@convex-dev/auth/nextjs/server";
 
 const isSignInPage = createRouteMatcher(["/signin"]);
-const isProtectedRoute = createRouteMatcher(["/"]);
+// Only protect settings/admin routes - allow anonymous access to notes
+const isProtectedRoute = createRouteMatcher(["/admin"]);
 
 export default convexAuthNextjsMiddleware(
   async (request, { convexAuth }) => {
+    // Redirect authenticated users away from sign-in page
     if (isSignInPage(request) && (await convexAuth.isAuthenticated())) {
       return nextjsMiddlewareRedirect(request, "/");
     }
+    // Only protect settings/admin routes - allow anonymous users to access notes
     if (isProtectedRoute(request) && !(await convexAuth.isAuthenticated())) {
       return nextjsMiddlewareRedirect(request, "/signin");
     }

@@ -1,0 +1,160 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
+import { mutation, query } from "./_generated/server";
+import { v } from "convex/values";
+
+/*
+ * Sync a local note to the cloud
+ * Creates a new note document in the cloud
+ */
+export const syncNote = mutation({
+  args: {
+    noteId: v.string(),
+    content: v.string(),
+    updatedAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not authenticated");
+    }
+
+    // Check if note already exists
+    const existing = await ctx.db
+      .query("notes")
+      .withIndex("by_user_and_noteId", (q) =>
+        q.eq("userId", userId).eq("noteId", args.noteId)
+      )
+      .first();
+
+    if (existing) {
+      return await ctx.db.patch(existing._id, {
+        content: args.content,
+        updatedAt: args.updatedAt,
+        deletedAt: undefined, // Clear soft delete if exists
+      });
+    }
+
+    // Create new note
+    return await ctx.db.insert("notes", {
+      userId,
+      noteId: args.noteId,
+      content: args.content,
+      updatedAt: args.updatedAt,
+    });
+  },
+});
+
+/*
+ * Get a single note by noteId
+ */
+export const getNote = query({
+  args: {
+    noteId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return null;
+    }
+
+    const note = await ctx.db
+      .query("notes")
+      .withIndex("by_user_and_noteId", (q) =>
+        q.eq("userId", userId).eq("noteId", args.noteId)
+      )
+      .first();
+
+    if (!note || note.deletedAt) {
+      return null;
+    }
+
+    return note;
+  },
+});
+
+/*
+ * List all user's notes (excluding soft-deleted)
+ */
+export const listUserNotes = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [];
+    }
+
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    // Filter out soft-deleted notes and sort by updatedAt descending
+    return notes
+      .filter((notes) => !notes.deletedAt)
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+});
+
+/*
+ * Update an existing note's content
+ */
+
+export const udpateNote = mutation({
+  args: {
+    noteId: v.string(),
+    content: v.string(),
+    updatedAt: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db
+      .query("notes")
+      .withIndex("by_user_and_noteId", (q) =>
+        q.eq("userId", userId).eq("noteId", args.noteId)
+      )
+      .first();
+
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    return await ctx.db.patch(note._id, {
+      content: args.content,
+      updatedAt: args.updatedAt,
+    });
+  },
+});
+
+/*
+ * Soft delete a note (sets deletedAt timestamp)
+ */
+export const deleteNote = mutation({
+  args: {
+    noteId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db
+      .query("notes")
+      .withIndex("by_user_and_noteId", (q) =>
+        q.eq("userId", userId).eq("noteId", args.noteId)
+      )
+      .first();
+
+    if (!note) {
+      throw new Error("Note not found");
+    }
+
+    return await ctx.db.patch(note._id, {
+      deletedAt: Date.now(),
+    });
+  },
+});

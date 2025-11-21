@@ -46,6 +46,7 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
         <NotesMetadataBar
           lastEdited={note?.updatedAt}
           cloudStatus={note?.cloudStatus}
+          noteId={noteId}
         />
         <CodeMirror
           placeholder={"Start typing"}

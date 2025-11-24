@@ -30,18 +30,18 @@ async function withRetry<T>(
         throw lastError;
       }
 
-      //   If this is the laste attempt, throw
+      // If this is the last attempt, throw
       if (attempt === maxRetries) {
         throw lastError;
       }
 
-      //   Exponential backoff: delayMs * 2^attempt
+      // Exponential backoff: delayMs * 2^attempt
       const backoffDelay = delayMs * Math.pow(2, attempt);
       await new Promise((resolve) => setTimeout(resolve, backoffDelay));
     }
   }
 
-  throw lastError || new Error("Unknow error");
+  throw lastError || new Error("Unknown error");
 }
 
 /*
@@ -81,7 +81,7 @@ export function useSyncNote() {
  * Hook to update a note in cloud
  */
 export function useUpdateNote() {
-  const updateNoteMutation = useMutation(api.notes.udpateNote);
+  const updateNoteMutation = useMutation(api.notes.updateNote);
 
   return useCallback(
     async (note: NoteContent): Promise<void> => {

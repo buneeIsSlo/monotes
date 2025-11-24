@@ -35,6 +35,8 @@ export function useSyncNoteToCloud() {
           cloudStatus: "syncing",
         });
 
+        console.log("Status:", note.cloudStatus);
+
         const updatedNote = await localDB.notes.get(noteId);
         if (!updatedNote) {
           throw new Error(`Note ${noteId} not found after update`);
@@ -101,7 +103,7 @@ export function useAutoSync() {
 
   const syncAllNotes = useCallback(async () => {
     if (!isOnlineRef.current) {
-      console.log("Skipping sync - ofline");
+      console.log("Skipping sync - offline");
       return; // Skip sync if offline
     }
 
@@ -124,7 +126,7 @@ export function useAutoSync() {
           // Compare timestamps
           if (note.updatedAt > cloudNote.updatedAt) {
             // Local note is newer - upload
-            console.log(`Auto-sync: Found ${notesToSync.length} notes to sync`);
+            console.log(`Auto-sync: Updating note ${note.id} (local is newer)`);
             await updateNote(note);
           }
           // If cloud note is newer, real-time subscription will handle it

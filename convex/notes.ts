@@ -99,7 +99,7 @@ export const listUserNotes = query({
  * Update an existing note's content
  */
 
-export const udpateNote = mutation({
+export const updateNote = mutation({
   args: {
     noteId: v.string(),
     content: v.string(),

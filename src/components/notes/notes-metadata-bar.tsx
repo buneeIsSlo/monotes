@@ -1,6 +1,7 @@
 "use client";
 
-import { CounterClockwiseClockIcon } from "@radix-ui/react-icons";
+import { CounterClockwiseClockIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { CircleCheckBigIcon, DatabaseIcon } from "lucide-react";
 import { Authenticated, Unauthenticated } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -11,6 +12,8 @@ interface NotesMetadataBarProps {
   cloudStatus?: "local" | "syncing" | "synced" | "ai-enabled";
   noteId?: string;
   className?: string;
+  isSyncing?: boolean;
+  syncComplete?: boolean;
 }
 
 export default function NotesMetadataBar({
@@ -18,6 +21,8 @@ export default function NotesMetadataBar({
   cloudStatus = "local",
   noteId,
   className = "",
+  isSyncing = false,
+  syncComplete = false,
 }: NotesMetadataBarProps) {
   const router = useRouter();
   const [syncModalOpen, setSyncModalOpen] = useState(false);
@@ -56,44 +61,44 @@ export default function NotesMetadataBar({
           <span>{lastEdited ? formatLastEdited(lastEdited) : "never"}</span>
         </div>
 
-        {/* Cloud status badge */}
         <div className="flex items-center gap-2">
           {cloudStatus === "local" && (
             <div className="">
               <Unauthenticated>
                 <button
                   onClick={() => router.push("/signin")}
-                  className="text-xs px-2 py-1 rounded-md bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+                  className="text-xs rounded-md hover:bg-muted/80 transition-colors cursor-pointer flex items-center gap-2"
                   title="Sign in to sync to cloud"
                 >
-                  📱 Local Only
+                  <DatabaseIcon className="size-3" />
+                  Local Only
                 </button>
               </Unauthenticated>
               <Authenticated>
                 <button
                   onClick={() => setSyncModalOpen(true)}
-                  className="text-xs px-2 py-1 rounded-md bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+                  className="text-xs rounded-md hover:bg-muted/80 transition-colors cursor-pointer flex items-center gap-2"
                   title="Click to sync to cloud"
                 >
-                  📱 Local Only
+                  <DatabaseIcon className="size-3" />
+                  Local Only
                 </button>
               </Authenticated>
             </div>
           )}
-          {cloudStatus === "syncing" && (
-            <span className="text-xs px-2 py-1 rounded-md bg-muted flex items-center gap-1">
-              <span className="animate-spin">⏳</span>
+          {isSyncing && (
+            <span className="text-muted-foreground flex items-center gap-2">
+              <UpdateIcon className="size-3 animate-spin" />
               Syncing...
             </span>
           )}
-          {cloudStatus === "synced" && (
-            <span className="text-xs px-2 py-1 rounded-md bg-muted">
-              ☁️ Synced
-            </span>
-          )}
-          {cloudStatus === "ai-enabled" && (
-            <span className="text-xs px-2 py-1 rounded-md bg-muted">
-              ✨ AI Enabled
+          {!isSyncing && syncComplete && (
+            <span
+              className="text-blue-500 flex items-center gap-2"
+              title="Synced to cloud"
+            >
+              <CircleCheckBigIcon className="size-3" />
+              Synced
             </span>
           )}
         </div>

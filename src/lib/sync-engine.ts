@@ -1,70 +1,40 @@
-/*
- * Sync Engine
- * Manages automatic syncing of notes to cloud storage
- * Only syncs notes with cloudStatus: "synced" or "ai-enabled"
- */
-
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getDB, NoteContent } from "./local-db";
-import { useListCloudNotes, useSyncNote, useUpdateNote } from "./cloud-notes";
-import { listNotes } from "./local-notes";
+import { useSyncNote } from "./cloud-notes";
 
-const SYNC_INTERVAL_MS = 15 * 1000; // 15 seconds
+const DEBOUNCE_DELAY_MS = 3 * 1000;
+const SYNC_COMPLETE_MS = 3 * 1000;
 
 /*
  * Hook to sync a single note to cloud
- * Updates cloudStatus: "local" → "syncing" → "synced"
  */
-
 export function useSyncNoteToCloud() {
   const syncNote = useSyncNote();
 
   return useCallback(
     async (noteId: string): Promise<void> => {
       const localDB = getDB();
-      let note = await localDB.notes.get(noteId);
+      const note = await localDB.notes.get(noteId);
 
       if (!note) {
         throw new Error(`Note ${noteId} not found`);
       }
 
-      // Only sync if cloudStatus is "synced" or "ai-enabled"
-      // If it's "local", we need to change it to "syncing" first
-      if (note.cloudStatus === "local") {
-        await localDB.notes.update(noteId, {
-          cloudStatus: "syncing",
-        });
-
-        console.log("Status:", note.cloudStatus);
-
-        const updatedNote = await localDB.notes.get(noteId);
-        if (!updatedNote) {
-          throw new Error(`Note ${noteId} not found after update`);
-        }
-        note = updatedNote;
-      }
+      const originalStatus = note.cloudStatus;
 
       try {
-        // Try to sync - syncNote mutation handles create vs update automatically
-        // (it checks if note exists and updates or creates accordingly)
         console.log("Calling syncNote with note:", note.id, note.cloudStatus);
         await syncNote(note);
         console.log("Sync completed for note:", note.id);
 
-        // Update status to "synced" (or keep "ai-enabled" if it was that)
         const finalStatus: NoteContent["cloudStatus"] =
-          note.cloudStatus === "ai-enabled" ? "ai-enabled" : "synced";
+          originalStatus === "ai-enabled" ? "ai-enabled" : "synced";
 
-        await localDB.notes.update(noteId, {
-          cloudStatus: finalStatus,
-        });
+        await localDB.notes.update(noteId, { cloudStatus: finalStatus });
         console.log("Updated note status to:", finalStatus);
       } catch (error) {
         console.error("Sync error for note", noteId, ":", error);
-        // On error, revert to "local" status
-        await localDB.notes.update(noteId, {
-          cloudStatus: "local",
-        });
+        await localDB.notes.update(noteId, { cloudStatus: "local" });
         throw error;
       }
     },
@@ -73,107 +43,141 @@ export function useSyncNoteToCloud() {
 }
 
 /*
- * Hook to start auto-sync (runs every 15 seconds)
- * Only syncs notes with cloudStatus: "synced" or "ai-enabled"
+ * Hook for debounced cloud sync of the current note
  */
-export function useAutoSync() {
+export function useDebouncedCloudSync(
+  noteId: string,
+  content: string,
+  cloudStatus: string
+) {
   const syncNote = useSyncNote();
-  const updateNote = useUpdateNote();
-  const cloudNotes = useListCloudNotes();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isOnlineRef = useRef(navigator.onLine);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const syncCompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isSyncingRef = useRef(false);
+  const prevNoteIdRef = useRef(noteId);
+  const prevContentRef = useRef(content);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncComplete, setSyncComplete] = useState(false);
 
-  // Track online/offline status
+  // Cleanup on unmount and noteId changes
   useEffect(() => {
-    const handleOnline = () => {
-      isOnlineRef.current = true;
-    };
-    const handleOffline = () => {
-      isOnlineRef.current = false;
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
-  const syncAllNotes = useCallback(async () => {
-    if (!isOnlineRef.current) {
-      console.log("Skipping sync - offline");
-      return; // Skip sync if offline
-    }
-
-    const localNotes = await listNotes();
-
-    // Only sync notes with cloudStatus: "synced" or "ai-enabled"
-    const notesToSync = localNotes.filter(
-      (note) =>
-        note.cloudStatus === "synced" || note.cloudStatus === "ai-enabled"
-    );
-
-    console.log(`Auto-sync: Found ${notesToSync.length} notes to sync`);
-
-    for (const note of notesToSync) {
-      try {
-        // Get cloud version if available
-        const cloudNote = cloudNotes?.find((cn) => cn.noteId === note.id);
-
-        if (cloudNote) {
-          // Compare timestamps
-          if (note.updatedAt > cloudNote.updatedAt) {
-            // Local note is newer - upload
-            console.log(`Auto-sync: Updating note ${note.id} (local is newer)`);
-            await updateNote(note);
-          }
-          // If cloud note is newer, real-time subscription will handle it
-        } else {
-          // Note doesn't exist in cloud - initial sync
-          console.log(`Auto-sync: Initial sync for note ${note.id}`);
-          await syncNote(note);
-        }
-      } catch (error) {
-        console.error(`Failed to sync note ${note.id}:`, error);
-        // Continue with other notes even if one fails
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
-    }
-  }, [syncNote, updateNote, cloudNotes]);
-
-  const startAutoSync = useCallback(() => {
-    if (intervalRef.current) {
-      return; // Already running
-    }
-
-    // Initial sync
-    syncAllNotes();
-
-    // Set up interval
-    intervalRef.current = setInterval(() => {
-      syncAllNotes();
-    }, SYNC_INTERVAL_MS);
-  }, [syncAllNotes]);
-
-  const stopAutoSync = useCallback(() => {
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      stopAutoSync();
+      if (syncCompleteTimeoutRef.current) {
+        clearTimeout(syncCompleteTimeoutRef.current);
+        syncCompleteTimeoutRef.current = null;
+      }
     };
-  }, [stopAutoSync]);
+  }, [noteId]);
 
-  return {
-    startAutoSync,
-    stopAutoSync,
-    syncAllNotes,
-    isOnline: isOnlineRef.current,
-  };
+  const performSync = useCallback(async () => {
+    if (!navigator.onLine) {
+      console.log("Skipping sync - offline");
+      return;
+    }
+
+    if (cloudStatus !== "synced" && cloudStatus !== "ai-enabled") {
+      return;
+    }
+
+    if (isSyncingRef.current) {
+      return;
+    }
+
+    // Clear any pending sync complete timeout
+    if (syncCompleteTimeoutRef.current) {
+      clearTimeout(syncCompleteTimeoutRef.current);
+      syncCompleteTimeoutRef.current = null;
+    }
+
+    isSyncingRef.current = true;
+    setIsSyncing(true);
+    setSyncComplete(false);
+    const localDB = getDB();
+
+    try {
+      const note = await localDB.notes.get(noteId);
+      if (!note) {
+        throw new Error(`Note ${noteId} not found`);
+      }
+
+      console.log(`Debounced sync: Syncing note ${noteId}`);
+      await syncNote(note);
+      console.log(`Debounced sync: Completed for note ${noteId}`);
+
+      // Show completion briefly
+      setIsSyncing(false);
+      setSyncComplete(true);
+      syncCompleteTimeoutRef.current = setTimeout(() => {
+        setSyncComplete(false);
+        syncCompleteTimeoutRef.current = null;
+      }, SYNC_COMPLETE_MS);
+    } catch (error) {
+      console.error(`Debounced sync failed for note ${noteId}:`, error);
+      setIsSyncing(false);
+    } finally {
+      isSyncingRef.current = false;
+    }
+  }, [noteId, cloudStatus, syncNote]);
+
+  // Debounce sync on content changes
+  useEffect(() => {
+    const prevNoteId = prevNoteIdRef.current;
+    const prevContent = prevContentRef.current;
+
+    prevNoteIdRef.current = noteId;
+    prevContentRef.current = content;
+
+    // Skip sync if noteId changed (user switched notes)
+    if (prevNoteId !== noteId) {
+      return;
+    }
+
+    // Skip sync if content hasn't changed
+    if (prevContent === content) {
+      return;
+    }
+
+    // Skip sync if this looks like initial load (prev was empty, now not)
+    if (prevContent === "" && content !== "") {
+      return;
+    }
+
+    // Only set up debounce for syncable notes
+    if (cloudStatus !== "synced" && cloudStatus !== "ai-enabled") {
+      return;
+    }
+
+    // Clear existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set new timeout
+    timeoutRef.current = setTimeout(() => {
+      performSync();
+    }, DEBOUNCE_DELAY_MS);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [noteId, content, cloudStatus, performSync]);
+
+  //syncNow method for immediate syncing
+  const syncNow = useCallback(() => {
+    // Clear pending debounce
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    performSync();
+  }, [performSync]);
+
+  return { syncNow, isSyncing, syncComplete };
 }

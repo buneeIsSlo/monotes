@@ -8,6 +8,7 @@ import { vim, Vim } from "@replit/codemirror-vim";
 import { toast } from "sonner";
 import { editorThemeExtensions } from "./notes-theme";
 import { useLocalNote } from "@/hooks/useLocalNote";
+import { useDebouncedCloudSync } from "@/lib/sync-engine";
 import NotesMetadataBar from "./notes-metadata-bar";
 
 interface NotesEditorProps {
@@ -17,12 +18,18 @@ interface NotesEditorProps {
 export default function NotesEditor({ noteId }: NotesEditorProps) {
   const id = noteId ?? "local-default";
   const { note, setMarkdown, saveNow } = useLocalNote(id);
+  const { syncNow, isSyncing, syncComplete } = useDebouncedCloudSync(
+    id,
+    note?.content ?? "",
+    note?.cloudStatus ?? "local"
+  );
 
   const handleSave = useCallback(() => {
     saveNow();
+    syncNow();
     toast.success("Saved");
     return true;
-  }, [saveNow]);
+  }, [saveNow, syncNow]);
 
   useEffect(() => {
     Vim.defineEx("write", "w", handleSave);
@@ -47,6 +54,8 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
           lastEdited={note?.updatedAt}
           cloudStatus={note?.cloudStatus}
           noteId={noteId}
+          isSyncing={isSyncing}
+          syncComplete={syncComplete}
         />
         <CodeMirror
           placeholder={"Start typing"}

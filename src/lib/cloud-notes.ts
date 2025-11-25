@@ -52,17 +52,6 @@ export function useSyncNote() {
 
   return useCallback(
     async (note: NoteContent): Promise<void> => {
-      // Only sync if cloudStatus is "synced", "ai-enabled", or "syncing"
-      // "syncing" is allowed during the sync process
-      if (
-        note.cloudStatus !== "synced" &&
-        note.cloudStatus !== "ai-enabled" &&
-        note.cloudStatus !== "syncing"
-      ) {
-        console.log("Skipping sync - cloudStatus is", note.cloudStatus);
-        return;
-      }
-
       console.log("Syncing note to cloud:", note.id);
       await withRetry(async () => {
         await syncNoteMutation({
@@ -85,13 +74,7 @@ export function useUpdateNote() {
 
   return useCallback(
     async (note: NoteContent): Promise<void> => {
-      // Only sync if cloudStatus is "synced", "ai-enabled", or "syncing"
-      // "syncing" is allowed during the sync process
-      if (
-        note.cloudStatus !== "synced" &&
-        note.cloudStatus !== "ai-enabled" &&
-        note.cloudStatus !== "syncing"
-      ) {
+      if (note.cloudStatus !== "synced" && note.cloudStatus !== "ai-enabled") {
         return;
       }
 

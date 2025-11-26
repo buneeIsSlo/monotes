@@ -52,7 +52,15 @@ export function useLocalNote(slug: string) {
       setIsSaving(true);
       try {
         const updated = await saveNote(slug, content ?? note.content);
-        setNote(updated);
+        // Only update timestamp to preserve current content and avoid race condition
+        setNote((prev) =>
+          prev
+            ? {
+                ...prev,
+                updatedAt: updated.updatedAt,
+              }
+            : prev
+        );
       } finally {
         setIsSaving(false);
       }

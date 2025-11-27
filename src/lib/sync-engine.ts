@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getDB, NoteContent } from "./local-db";
 import { useSyncNote } from "./cloud-notes";
+import { useDebounced } from "@/hooks/useDebounced";
 
 const DEBOUNCE_DELAY_MS = 3 * 1000;
 const SYNC_COMPLETE_MS = 3 * 1000;
@@ -51,27 +52,13 @@ export function useDebouncedCloudSync(
   cloudStatus: string
 ) {
   const syncNote = useSyncNote();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const syncCompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSyncingRef = useRef(false);
   const prevNoteIdRef = useRef(noteId);
   const prevContentRef = useRef(content);
+  const lastSyncedContentRef = useRef(content);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncComplete, setSyncComplete] = useState(false);
-
-  // Cleanup on unmount and noteId changes
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
-      if (syncCompleteTimeoutRef.current) {
-        clearTimeout(syncCompleteTimeoutRef.current);
-        syncCompleteTimeoutRef.current = null;
-      }
-    };
-  }, [noteId]);
 
   const performSync = useCallback(async () => {
     if (!navigator.onLine) {
@@ -106,6 +93,7 @@ export function useDebouncedCloudSync(
 
       console.log(`Debounced sync: Syncing note ${noteId}`);
       await syncNote(note);
+      lastSyncedContentRef.current = note.content;
       console.log(`Debounced sync: Completed for note ${noteId}`);
 
       // Show completion briefly
@@ -123,7 +111,12 @@ export function useDebouncedCloudSync(
     }
   }, [noteId, cloudStatus, syncNote]);
 
-  // Debounce sync on content changes
+  const { debouncedFn: debouncedSync, cancel: cancelSync } = useDebounced(
+    performSync,
+    DEBOUNCE_DELAY_MS
+  );
+
+  // Trigger sync on content changes
   useEffect(() => {
     const prevNoteId = prevNoteIdRef.current;
     const prevContent = prevContentRef.current;
@@ -131,53 +124,45 @@ export function useDebouncedCloudSync(
     prevNoteIdRef.current = noteId;
     prevContentRef.current = content;
 
-    // Skip sync if noteId changed (user switched notes)
+    // Reset baseline when switching notes
     if (prevNoteId !== noteId) {
+      lastSyncedContentRef.current = content;
       return;
     }
 
-    // Skip sync if content hasn't changed
-    if (prevContent === content) {
+    // Skip if content unchanged, matches last synced, or is initial load
+    if (
+      prevContent === content ||
+      content === lastSyncedContentRef.current ||
+      (prevContent === "" && content !== "")
+    ) {
+      cancelSync(); // Cancel any pending sync (e.g., vim keymap bounce-back)
       return;
     }
 
-    // Skip sync if this looks like initial load (prev was empty, now not)
-    if (prevContent === "" && content !== "") {
-      return;
-    }
-
-    // Only set up debounce for syncable notes
+    // Only sync notes with cloud status
     if (cloudStatus !== "synced" && cloudStatus !== "ai-enabled") {
       return;
     }
 
-    // Clear existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    debouncedSync();
+  }, [noteId, content, cloudStatus, debouncedSync, cancelSync]);
 
-    // Set new timeout
-    timeoutRef.current = setTimeout(() => {
-      performSync();
-    }, DEBOUNCE_DELAY_MS);
-
+  // Cleanup on note change
+  useEffect(() => {
     return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
+      cancelSync();
+      if (syncCompleteTimeoutRef.current) {
+        clearTimeout(syncCompleteTimeoutRef.current);
+        syncCompleteTimeoutRef.current = null;
       }
     };
-  }, [noteId, content, cloudStatus, performSync]);
+  }, [noteId, cancelSync]);
 
-  //syncNow method for immediate syncing
   const syncNow = useCallback(() => {
-    // Clear pending debounce
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+    cancelSync();
     performSync();
-  }, [performSync]);
+  }, [cancelSync, performSync]);
 
   return { syncNow, isSyncing, syncComplete };
 }

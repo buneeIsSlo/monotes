@@ -1,7 +1,7 @@
 "use client";
 
+import { useEffect, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -23,15 +23,18 @@ import { listNotes } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
+import { useNoteSync } from "@/contexts/note-sync-context";
 
 export default function NotesSidebar() {
   const [notes, setNotes] = useState<NoteContent[]>([]);
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.user.currentUser);
+  const { syncNow } = useNoteSync();
 
   useEffect(() => {
     let isMounted = true;
@@ -40,7 +43,7 @@ export default function NotesSidebar() {
         const all = await listNotes();
         if (isMounted) setNotes(all);
       } catch {
-        // ignore
+        // do nuffin
       }
     })();
     return () => {
@@ -57,8 +60,31 @@ export default function NotesSidebar() {
     }
   };
 
-  // Get email from user (already fetched in the query)
   const userEmail = currentUser?.email || null;
+
+  const handleNoteClick = async (
+    e: MouseEvent<HTMLAnchorElement>,
+    targetNoteId: string
+  ) => {
+    // Get current note ID from pathname
+    const currentNoteIdFromPath = pathname?.replace(/^\//, "") || null;
+
+    // If clicking a different note and sync function exists, sync before navigating
+    if (
+      currentNoteIdFromPath &&
+      targetNoteId !== currentNoteIdFromPath &&
+      syncNow
+    ) {
+      e.preventDefault(); // Prevent Link navigation
+      try {
+        await syncNow();
+      } catch (error) {
+        console.error("Sync failed before navigation:", error);
+      }
+      // Navigate after sync completes
+      router.push(`/${targetNoteId}`);
+    }
+  };
 
   return (
     <Sidebar>
@@ -90,6 +116,7 @@ export default function NotesSidebar() {
                   <SidebarMenuButton asChild>
                     <Link
                       href={`/${n.id}`}
+                      onClick={(e) => handleNoteClick(e, n.id)}
                       className="[&:hover_span]:text-foreground group"
                     >
                       <span className="truncate text-sidebar-foreground/70 transition-colors">

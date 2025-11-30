@@ -55,8 +55,7 @@ export function useDebouncedCloudSync(
   const syncCompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isSyncingRef = useRef(false);
   const prevNoteIdRef = useRef(noteId);
-  const prevContentRef = useRef(content);
-  const lastSyncedContentRef = useRef(content);
+  const lastSyncedContentRef = useRef<string>("");
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncComplete, setSyncComplete] = useState(false);
 
@@ -74,22 +73,29 @@ export function useDebouncedCloudSync(
       return;
     }
 
-    // Clear any pending sync complete timeout
-    if (syncCompleteTimeoutRef.current) {
-      clearTimeout(syncCompleteTimeoutRef.current);
-      syncCompleteTimeoutRef.current = null;
-    }
-
-    isSyncingRef.current = true;
-    setIsSyncing(true);
-    setSyncComplete(false);
     const localDB = getDB();
 
     try {
+      // Read note and check if content has changed before setting syncing state
       const note = await localDB.notes.get(noteId);
       if (!note) {
         throw new Error(`Note ${noteId} not found`);
       }
+
+      // Skip sync if content hasn't changed from what was last synced
+      if (note.content === lastSyncedContentRef.current) {
+        return;
+      }
+
+      // Clear any pending sync complete timeout
+      if (syncCompleteTimeoutRef.current) {
+        clearTimeout(syncCompleteTimeoutRef.current);
+        syncCompleteTimeoutRef.current = null;
+      }
+
+      isSyncingRef.current = true;
+      setIsSyncing(true);
+      setSyncComplete(false);
 
       console.log(`Debounced sync: Syncing note ${noteId}`);
       await syncNote(note);
@@ -116,37 +122,37 @@ export function useDebouncedCloudSync(
     DEBOUNCE_DELAY_MS
   );
 
-  // Trigger sync on content changes
+  // Initialize lastSyncedContentRef from database when note changes
+  useEffect(() => {
+    if (!noteId) return;
+
+    (async () => {
+      const localDB = getDB();
+      const note = await localDB.notes.get(noteId);
+      if (note) {
+        lastSyncedContentRef.current = note.content;
+      }
+    })();
+  }, [noteId]);
+
   useEffect(() => {
     const prevNoteId = prevNoteIdRef.current;
-    const prevContent = prevContentRef.current;
-
     prevNoteIdRef.current = noteId;
-    prevContentRef.current = content;
 
-    // Reset baseline when switching notes
+    // Reset baseline when switching notes - content will be initialized from DB in separate effect
     if (prevNoteId !== noteId) {
-      lastSyncedContentRef.current = content;
       return;
     }
 
-    // Skip if content unchanged, matches last synced, or is initial load
-    if (
-      prevContent === content ||
-      content === lastSyncedContentRef.current ||
-      (prevContent === "" && content !== "")
-    ) {
-      cancelSync(); // Cancel any pending sync (e.g., vim keymap bounce-back)
+    // Skip if content matches what was last synced (no changes)
+    if (content === lastSyncedContentRef.current) {
+      cancelSync();
       return;
     }
 
-    // Only sync notes with cloud status
-    if (cloudStatus !== "synced" && cloudStatus !== "ai-enabled") {
-      return;
-    }
-
+    // Schedule debounced sync - performSync will handle all validation
     debouncedSync();
-  }, [noteId, content, cloudStatus, debouncedSync, cancelSync]);
+  }, [noteId, content, debouncedSync, cancelSync]);
 
   // Cleanup on note change
   useEffect(() => {
@@ -159,9 +165,9 @@ export function useDebouncedCloudSync(
     };
   }, [noteId, cancelSync]);
 
-  const syncNow = useCallback(() => {
+  const syncNow = useCallback(async () => {
     cancelSync();
-    performSync();
+    await performSync();
   }, [cancelSync, performSync]);
 
   return { syncNow, isSyncing, syncComplete };

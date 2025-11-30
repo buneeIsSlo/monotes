@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { editorThemeExtensions } from "./notes-theme";
 import { useLocalNote } from "@/hooks/useLocalNote";
 import { useDebouncedCloudSync } from "@/lib/sync-engine";
+import { useNoteSync } from "@/contexts/note-sync-context";
 import NotesMetadataBar from "./notes-metadata-bar";
 
 interface NotesEditorProps {
@@ -23,6 +24,14 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
     note?.content ?? "",
     note?.cloudStatus ?? "local"
   );
+  const { registerSync, unregisterSync } = useNoteSync();
+
+  useEffect(() => {
+    registerSync(id, syncNow);
+    return () => {
+      unregisterSync();
+    };
+  }, [id, syncNow, registerSync, unregisterSync]);
 
   const handleSave = useCallback(() => {
     saveNow();

@@ -26,6 +26,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { api } from "../../../convex/_generated/api";
 import { useNoteSync } from "@/contexts/note-sync-context";
+import { cn } from "@/lib/utils";
 
 export default function NotesSidebar() {
   const [notes, setNotes] = useState<NoteContent[]>([]);
@@ -61,6 +62,7 @@ export default function NotesSidebar() {
   };
 
   const userEmail = currentUser?.email || null;
+  const currentNoteId = pathname?.replace(/^\//, "") || null;
 
   const handleNoteClick = async (
     e: MouseEvent<HTMLAnchorElement>,
@@ -117,7 +119,11 @@ export default function NotesSidebar() {
                     <Link
                       href={`/${n.id}`}
                       onClick={(e) => handleNoteClick(e, n.id)}
-                      className="[&:hover_span]:text-foreground group"
+                      className={cn(
+                        "[&:hover_span]:text-foreground group",
+                        currentNoteId === n.id &&
+                          "bg-accent [&>span]:text-foreground border"
+                      )}
                     >
                       <span className="truncate text-sidebar-foreground/70 transition-colors">
                         {n.content?.trim() ? n.content.split("\n")[0] : n.id}

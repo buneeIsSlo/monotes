@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   MixerHorizontalIcon,
   PlusIcon,
@@ -25,7 +26,7 @@ export default function Navbar() {
   return (
     <nav className="flex items-center justify-between fixed top-0 left-0 w-full p-2">
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
@@ -33,20 +34,20 @@ export default function Navbar() {
         <HamburgerMenuIcon className="size-4" />
       </Button>
 
-      <div className="flex items-center gap-2">
+      <ButtonGroup>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
           aria-label="New note"
           onClick={onCreateNew}
         >
           <PlusIcon className="size-4" />
         </Button>
-        <Button variant="outline" size="icon" aria-label="Settings">
+        <Button variant="ghost" size="icon" aria-label="Settings">
           <MixerHorizontalIcon className="size-4" />
         </Button>
         <ThemeToggeler />
-      </div>
+      </ButtonGroup>
     </nav>
   );
 }

@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
 import { useSidebar } from "@/components/ui/sidebar";
+import { SettingsDialog } from "@/components/settings-dialog";
 
 export default function Navbar() {
   const router = useRouter();
@@ -43,9 +44,7 @@ export default function Navbar() {
         >
           <PlusIcon className="size-4" />
         </Button>
-        <Button variant="ghost" size="icon" aria-label="Settings">
-          <MixerHorizontalIcon className="size-4" />
-        </Button>
+        <SettingsDialog />
         <ThemeToggeler />
       </ButtonGroup>
     </nav>

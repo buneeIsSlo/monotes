@@ -23,7 +23,7 @@ export function SettingsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" aria-label="settings">
+        <Button variant="ghost" size="icon" aria-label="settings">
           <MixerHorizontalIcon className="size-4" />
         </Button>
       </DialogTrigger>

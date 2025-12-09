@@ -17,10 +17,11 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Cross1Icon } from "@radix-ui/react-icons";
-import { User, LogOut } from "lucide-react";
-import { listNotes } from "@/lib/local-notes";
+import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
+import { User, LogOut, Search } from "lucide-react";
+import { listNotes, createNewNote } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
+import { generateSlug } from "@/lib/ids";
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter, usePathname } from "next/navigation";
@@ -59,6 +60,17 @@ export default function NotesSidebar() {
     } catch (error) {
       console.error("Failed to sign out:", error);
     }
+  };
+
+  const onCreateNew = async () => {
+    const slug = generateSlug();
+    const note = await createNewNote(slug);
+    router.push(`/${note.id}`);
+  };
+
+  const onSearch = () => {
+    // TODO: Implement search functionality
+    console.log("Search clicked");
   };
 
   const userEmail = currentUser?.email || null;
@@ -108,6 +120,32 @@ export default function NotesSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupContent>
+            <div className="flex flex-col gap-2 px-2 py-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-left"
+                onClick={onCreateNew}
+                aria-label="Create new note"
+              >
+                <PlusIcon className="size-4 mr-2" />
+                New Note
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={onSearch}
+                aria-label="Search notes"
+              >
+                <Search className="size-4 mr-2" />
+                Search
+              </Button>
+            </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
           <SidebarGroupLabel className="text-foreground">
             Notes
           </SidebarGroupLabel>
@@ -141,7 +179,7 @@ export default function NotesSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="py-4">
+      <SidebarFooter className="py-4 border-t border-secondary">
         <Unauthenticated>
           <div className="flex flex-col gap-2">
             <Button
@@ -167,7 +205,10 @@ export default function NotesSidebar() {
                   <span className="text-xs text-muted-foreground">
                     Signed In as
                   </span>
-                  <span className="text-sm font-medium truncate text-ellipsis">
+                  <span
+                    className="text-sm font-medium truncate text-ellipsis"
+                    title={userEmail || "User"}
+                  >
                     {userEmail || "User"}
                   </span>
                 </div>

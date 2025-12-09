@@ -2,11 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
-import {
-  MixerHorizontalIcon,
-  PlusIcon,
-  HamburgerMenuIcon,
-} from "@radix-ui/react-icons";
+import { PlusIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import ThemeToggeler from "@/components/theme-toggeler";
 import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
@@ -35,9 +31,9 @@ export default function Navbar() {
         <HamburgerMenuIcon className="size-4" />
       </Button>
 
-      <ButtonGroup>
+      <ButtonGroup className="gap-2">
         <Button
-          variant="ghost"
+          // variant="ghost"
           size="icon"
           aria-label="New note"
           onClick={onCreateNew}

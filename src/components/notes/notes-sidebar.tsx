@@ -17,7 +17,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Cross1Icon, PlusIcon } from "@radix-ui/react-icons";
+import { PinLeftIcon, PlusIcon } from "@radix-ui/react-icons";
 import { User, LogOut, Search } from "lucide-react";
 import { listNotes, createNewNote } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
@@ -103,7 +103,7 @@ export default function NotesSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center justify-between px-2 py-1.5">
+        <div className="flex items-center justify-between px-1.5 py-1.5">
           <Button
             variant="ghost"
             size="icon"
@@ -111,7 +111,7 @@ export default function NotesSidebar() {
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
-            <Cross1Icon className="size-4" />
+            <PinLeftIcon className="size-4" />
           </Button>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">Monotes</span>
@@ -121,28 +121,20 @@ export default function NotesSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent>
-            <div className="flex flex-col gap-2 px-2 py-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-left"
-                onClick={onCreateNew}
-                aria-label="Create new note"
-              >
-                <PlusIcon className="size-4 mr-2" />
-                New Note
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={onSearch}
-                aria-label="Search notes"
-              >
-                <Search className="size-4 mr-2" />
-                Search
-              </Button>
-            </div>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onCreateNew}>
+                  <PlusIcon className="size-4 mr-2" />
+                  <span>New Note</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={onSearch}>
+                  <Search className="size-4 mr-2" />
+                  <span>Search</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>

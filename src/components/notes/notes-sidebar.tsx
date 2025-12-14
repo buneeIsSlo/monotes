@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { type MouseEvent } from "react";
 import Link from "next/link";
 import {
   Sidebar,
@@ -19,8 +19,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { PinLeftIcon, PlusIcon } from "@radix-ui/react-icons";
 import { User, LogOut, Search } from "lucide-react";
-import { listNotes, createNewNote } from "@/lib/local-notes";
-import type { NoteContent } from "@/lib/local-db";
+import { createNewNote } from "@/lib/local-notes";
+import { getDB } from "@/lib/local-db";
+import { useLiveQuery } from "dexie-react-hooks";
 import { generateSlug } from "@/lib/ids";
 import { Authenticated, Unauthenticated, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -30,7 +31,6 @@ import { useNoteSync } from "@/contexts/note-sync-context";
 import { cn } from "@/lib/utils";
 
 export default function NotesSidebar() {
-  const [notes, setNotes] = useState<NoteContent[]>([]);
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
   const pathname = usePathname();
@@ -38,20 +38,12 @@ export default function NotesSidebar() {
   const currentUser = useQuery(api.user.currentUser);
   const { syncNow } = useNoteSync();
 
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      try {
-        const all = await listNotes();
-        if (isMounted) setNotes(all);
-      } catch {
-        // do nuffin
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Use Dexie's liveQuery for automatic reactivity
+  const notes =
+    useLiveQuery(
+      () => getDB().notes.orderBy("updatedAt").reverse().toArray(),
+      []
+    ) || [];
 
   const handleSignOut = async () => {
     try {
@@ -156,7 +148,11 @@ export default function NotesSidebar() {
                       )}
                     >
                       <span className="truncate text-sidebar-foreground/70 transition-colors">
-                        {n.content?.trim() ? n.content.split("\n")[0] : n.id}
+                        {n.content?.trim()
+                          ? (n.content.trim().match(/[^\s\n]+/g) || [])
+                              .slice(0, 20)
+                              .join(" ")
+                          : n.id}
                       </span>
                     </Link>
                   </SidebarMenuButton>

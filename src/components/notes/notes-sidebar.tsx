@@ -1,6 +1,6 @@
 "use client";
 
-import { type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import Link from "next/link";
 import {
   Sidebar,
@@ -15,10 +15,27 @@ import {
   useSidebar,
   SidebarRail,
   SidebarFooter,
+  SidebarMenuAction,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { PinLeftIcon, PlusIcon } from "@radix-ui/react-icons";
-import { User, LogOut, Search } from "lucide-react";
+import { User, LogOut, Search, MoreHorizontal, Trash } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { createNewNote } from "@/lib/local-notes";
 import { getDB } from "@/lib/local-db";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -37,6 +54,7 @@ export default function NotesSidebar() {
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.user.currentUser);
   const { syncNow } = useNoteSync();
+  const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
 
   // Use Dexie's liveQuery for automatic reactivity
   const notes =
@@ -89,6 +107,13 @@ export default function NotesSidebar() {
       }
       // Navigate after sync completes
       router.push(`/${targetNoteId}`);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    await getDB().notes.delete(id);
+    if (currentNoteId === id) {
+      router.push("/");
     }
   };
 
@@ -156,6 +181,24 @@ export default function NotesSidebar() {
                       </span>
                     </Link>
                   </SidebarMenuButton>
+                  <DropdownMenu modal={false}>
+                    <DropdownMenuTrigger asChild className="cursor-pointer">
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal />
+                        <span className="sr-only">Options</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-36"
+                      side="bottom"
+                      align="start"
+                    >
+                      <DropdownMenuItem onSelect={() => setNoteToDelete(n.id)}>
+                        <Trash className="text-destructive" />
+                        <span className="text-destructive">Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </SidebarMenuItem>
               ))}
               {notes.length === 0 && (
@@ -165,6 +208,33 @@ export default function NotesSidebar() {
               )}
             </SidebarMenu>
           </SidebarGroupContent>
+          <AlertDialog
+            open={noteToDelete !== null}
+            onOpenChange={(open) => !open && setNoteToDelete(null)}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your note locally and from our servers.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => {
+                    if (noteToDelete) {
+                      handleDeleteNote(noteToDelete);
+                    }
+                  }}
+                  className="bg-destructive text-destructive-foreground"
+                >
+                  Yes, delete note
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="py-4 border-t border-secondary">

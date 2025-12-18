@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
+import EditorSettings from "./editor-settings";
 
 export function SettingsDialog() {
   const [open, setOpen] = React.useState(false);
@@ -38,7 +39,7 @@ export function SettingsDialog() {
           defaultValue="general"
           className="flex h-full w-full flex-row gap-0"
         >
-          <TabsList className="bg-transparent h-full w-48 shrink-0 flex-col justify-start rounded-none pl-4 pt-4">
+          <TabsList className="bg-transparent h-full w-48 shrink-0 flex-col justify-start rounded-none px-4 pt-4 border-r">
             <div className="flex w-full flex-col gap-2">
               <TabsTrigger
                 value="general"
@@ -83,7 +84,7 @@ export function SettingsDialog() {
               <div className="border-sidebar-border/50 bg-muted/20 h-32 rounded-xl border border-dashed" />
             </TabsContent>
             <TabsContent value="editor" className="p-6 m-0 space-y-4">
-              <div className="border-sidebar-border/50 bg-muted/20 h-32 rounded-xl border border-dashed" />
+              <EditorSettings />
             </TabsContent>
           </div>
         </Tabs>

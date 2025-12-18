@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
 import { useSidebar } from "@/components/ui/sidebar";
-import { SettingsDialog } from "@/components/settings-dialog";
+import { SettingsDialog } from "@/components/settings/settings-dialog";
 
 export default function Navbar() {
   const router = useRouter();

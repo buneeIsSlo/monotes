@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import CodeMirror, { EditorSelection } from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { EditorView, keymap } from "@codemirror/view";
+import { EditorState } from "@codemirror/state";
 import { vim, Vim } from "@replit/codemirror-vim";
 import { toast } from "sonner";
 import { editorThemeExtensions } from "./notes-theme";
@@ -11,6 +12,7 @@ import { useLocalNote } from "@/hooks/useLocalNote";
 import { useDebouncedCloudSync } from "@/lib/sync-engine";
 import { useNoteSync } from "@/contexts/note-sync-context";
 import NotesMetadataBar from "./notes-metadata-bar";
+import { useEditorSettings } from "@/contexts/editor-settings-context";
 
 interface NotesEditorProps {
   noteId: string;
@@ -25,6 +27,10 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
     note?.cloudStatus ?? "local"
   );
   const { registerSync, unregisterSync } = useNoteSync();
+  const { settings } = useEditorSettings();
+
+  // Track applied Vim mappings to cleanup later
+  const appliedMappings = useRef<{ lhs: string; mode: string }[]>([]);
 
   useEffect(() => {
     registerSync(id, syncNow);
@@ -40,24 +46,66 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
     return true;
   }, [saveNow, syncNow]);
 
+  // Handle Vim commands
   useEffect(() => {
-    Vim.defineEx("write", "w", handleSave);
-  }, [handleSave]);
+    if (!settings.vimMode) return;
 
-  const extensions = useMemo(
-    () => [
+    // Clean up previous mappings
+    appliedMappings.current.forEach(({ lhs, mode }) => {
+      try {
+        Vim.unmap(lhs, mode);
+      } catch {
+        // Ignore unmap errors
+      }
+    });
+    appliedMappings.current = [];
+
+    Vim.defineEx("write", "w", handleSave);
+
+    const lines = settings.vimCommands.split("\n");
+    lines.forEach((line) => {
+      const parts = line.trim().split(/\s+/);
+      if (parts.length < 3) return;
+
+      const [cmd, lhs, ...rhsParts] = parts;
+      const rhs = rhsParts.join(" ");
+      let mode = "normal";
+
+      if (cmd.startsWith("i")) mode = "insert";
+      else if (cmd.startsWith("v")) mode = "visual";
+      else if (cmd.startsWith("n")) mode = "normal";
+
+      // Map keys
+      if (cmd.includes("nore")) {
+        Vim.noremap(lhs, rhs, mode);
+      } else {
+        Vim.map(lhs, rhs, mode);
+      }
+
+      appliedMappings.current.push({ lhs, mode });
+    });
+  }, [settings.vimMode, settings.vimCommands, handleSave]);
+
+  const extensions = useMemo(() => {
+    const exts = [
       markdown(),
-      vim(),
       ...editorThemeExtensions(),
+      EditorView.scrollMargins.of(() => ({ top: 200, bottom: 200 })),
       keymap.of([{ key: "Mod-s", run: handleSave, preventDefault: true }]),
-    ],
-    [handleSave]
-  );
+      EditorState.tabSize.of(settings.tabSize),
+    ];
+
+    if (settings.vimMode) {
+      exts.push(vim());
+    }
+
+    return exts;
+  }, [handleSave, settings.vimMode, settings.tabSize]);
 
   if (!note) return null;
 
   return (
-    <div className="editor-shell">
+    <div className="editor-shell" style={{ fontSize: settings.fontSize }}>
       <div className="py-12">
         <NotesMetadataBar
           lastEdited={note?.updatedAt}
@@ -68,14 +116,14 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
         />
         <CodeMirror
           placeholder={"Start typing"}
-          className="cm-container md:max-w-4xl text-xs sm:text-sm md:text-base"
+          className="cm-container md:max-w-4xl"
           value={note?.content ?? ""}
           onChange={setMarkdown}
           extensions={extensions}
           basicSetup={{
-            lineNumbers: false,
-            foldGutter: false,
-            highlightActiveLine: false,
+            lineNumbers: settings.lineNumbers,
+            foldGutter: settings.lineNumbers,
+            highlightActiveLine: settings.highlightActiveLine,
             bracketMatching: false,
             autocompletion: false,
             highlightSelectionMatches: false,

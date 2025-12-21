@@ -2,7 +2,7 @@
 
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
 import { Button } from "../ui/button";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import {
   Dialog,
@@ -13,10 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -28,7 +26,7 @@ export default function SettingsTrigger() {
   const isMobile = useBreakpoint(breakpoint);
 
   return (
-    <>
+    <React.Fragment>
       <Button
         variant="ghost"
         size="icon"
@@ -42,7 +40,7 @@ export default function SettingsTrigger() {
         <Drawer open={open} onOpenChange={setOpen}>
           <DrawerContent className="h-[85vh] bg-sidebar">
             <DrawerHeader className="text-left px-6 pt-6 pb-2 border-b border-border/50">
-              <DrawerTitle className="text-lg font-semibold leading-none tracking-tight">
+              <DrawerTitle className="text-lg font-semibold leading-none tracking-tight text-left w-fit py-2">
                 Settings
               </DrawerTitle>
               <DrawerDescription className="sr-only">
@@ -69,6 +67,6 @@ export default function SettingsTrigger() {
           </DialogContent>
         </Dialog>
       )}
-    </>
+    </React.Fragment>
   );
 }

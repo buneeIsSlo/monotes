@@ -70,7 +70,7 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
         key={value}
         value={value}
         className={cn(
-          "justify-start rounded-md px-3 text-sm transition-all hover:bg-muted/20 data-[state=active]:bg-muted/40 data-[state=active]:text-foreground data-[state=active]:shadow-none border-none h-9 flex-none",
+          "justify-start text-primary/80 rounded-md px-3 text-sm transition-all hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground border-none h-9 flex-none",
           isDesktop ? "w-full" : "shrink-0"
         )}
       >
@@ -99,7 +99,7 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
           defaultValue="general"
           className="flex flex-1 flex-row gap-0 min-h-0 w-full"
         >
-          <TabsList className="bg-muted/10 h-full w-44 shrink-0 flex-col justify-start rounded-none p-2 border-r border-border/50 gap-1">
+          <TabsList className="bg-muted/10 h-full w-44 shrink-0 flex-col justify-start rounded-none p-2 border-r border-border/50 gap-2">
             {tabTriggers(true)}
           </TabsList>
 

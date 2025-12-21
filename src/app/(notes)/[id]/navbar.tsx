@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
 import { useSidebar } from "@/components/ui/sidebar";
-import { SettingsDialog } from "@/components/settings/settings-dialog";
 import SettingsTrigger from "@/components/settings/settings-trigger";
 
 export default function Navbar() {

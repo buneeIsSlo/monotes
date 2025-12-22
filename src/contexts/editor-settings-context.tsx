@@ -19,7 +19,7 @@ export interface EditorSettings {
 
 const DEFAULT_SETTINGS: EditorSettings = {
   vimMode: true,
-  vimCommands: "imap kj <Esc>",
+  vimCommands: "",
   fontSize: 14,
   highlightActiveLine: false,
   lineNumbers: false,

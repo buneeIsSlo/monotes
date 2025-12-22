@@ -1,16 +1,43 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { FileText, Paintbrush, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EditorSettings from "./editor-settings";
 import { cn } from "@/lib/utils";
+
+const SETTINGS_TAB_STORAGE_KEY = "monotes-settings-tab";
+
+const SETTINGS_TABS = [
+  { value: "general", label: "General", icon: Settings },
+  { value: "appearance", label: "Appearance", icon: Paintbrush },
+  { value: "editor", label: "Editor", icon: FileText },
+] as const;
+
+type TabType = (typeof SETTINGS_TABS)[number]["value"];
 
 interface SettingsContentPros {
   isMobile: boolean;
 }
 
 export function SettingsContent({ isMobile }: SettingsContentPros) {
+  const [activeTab, setActiveTab] = useState<TabType>("general");
+
+  useEffect(() => {
+    const lastOpenedTab = sessionStorage.getItem(
+      SETTINGS_TAB_STORAGE_KEY
+    ) as TabType;
+    if (lastOpenedTab) {
+      setActiveTab(lastOpenedTab);
+    }
+  }, []);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabType);
+    sessionStorage.setItem(SETTINGS_TAB_STORAGE_KEY, value);
+  };
+
   const content = (
     <>
       <TabsContent
@@ -58,14 +85,8 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
     </>
   );
 
-  const tabs = [
-    { value: "general", label: "General", icon: Settings },
-    { value: "appearance", label: "Appearance", icon: Paintbrush },
-    { value: "editor", label: "Editor", icon: FileText },
-  ];
-
   const tabTriggers = (isDesktop: boolean) =>
-    tabs.map(({ value, label, icon: Icon }) => (
+    SETTINGS_TABS.map(({ value, label, icon: Icon }) => (
       <TabsTrigger
         key={value}
         value={value}
@@ -85,7 +106,8 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
     <>
       {isMobile ? (
         <Tabs
-          defaultValue="general"
+          value={activeTab}
+          onValueChange={handleTabChange}
           className="flex flex-1 flex-col min-h-0 w-full"
         >
           <TabsList className="bg-muted/10 h-auto w-full justify-start rounded-none px-4 py-2 border-b border-border/50 overflow-x-auto no-scrollbar shrink-0 gap-2">
@@ -96,7 +118,8 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
         </Tabs>
       ) : (
         <Tabs
-          defaultValue="general"
+          value={activeTab}
+          onValueChange={handleTabChange}
           className="flex flex-1 flex-row gap-0 min-h-0 w-full"
         >
           <TabsList className="bg-muted/10 h-full w-44 shrink-0 flex-col justify-start rounded-none p-2 border-r border-border/50 gap-2">

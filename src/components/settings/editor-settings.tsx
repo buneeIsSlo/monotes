@@ -125,28 +125,31 @@ export default function EditorSettings() {
           />
         </div>
 
-        {settings.vimMode && (
-          <div className="space-y-3 rounded-lg border border-border/50 bg-secondary dark:bg-card p-4 animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="space-y-2">
-              <Label htmlFor="vim-commands" className="text-xs font-medium">
-                Custom Keybindings
-              </Label>
-              <Textarea
-                id="vim-commands"
-                placeholder="imap kj <Esc>"
-                value={settings.vimCommands}
-                onChange={(e) => updateSetting("vimCommands", e.target.value)}
-                className="resize-none font-mono text-[13px] h-32 bg-input transition-colors border-none ring-1 ring-border/50 focus-visible:ring-ring"
-              />
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                Define custom Vim commands (one per line). Example:{" "}
-                <code className="bg-muted px-1 rounded text-foreground">
-                  imap kj &lt;Esc&gt;
-                </code>
-              </p>
-            </div>
+        <div className="space-y-3 rounded-lg border border-border/50 bg-secondary dark:bg-card p-4">
+          <div className="space-y-2">
+            <Label
+              htmlFor="vim-commands"
+              className="text-xs font-medium"
+              aria-disabled={!settings.vimMode}
+            >
+              Custom Keybindings
+            </Label>
+            <Textarea
+              id="vim-commands"
+              placeholder="imap kj <Esc>"
+              value={settings.vimCommands}
+              onChange={(e) => updateSetting("vimCommands", e.target.value)}
+              className="resize-none font-mono text-[13px] h-32 bg-input transition-colors border-none ring-1 ring-border/50 focus-visible:ring-ring"
+              disabled={!settings.vimMode}
+            />
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Define custom Vim commands (one per line). Example:{" "}
+              <code className="bg-muted px-1 rounded text-foreground">
+                imap kj &lt;Esc&gt;
+              </code>
+            </p>
           </div>
-        )}
+        </div>
       </section>
     </div>
   );

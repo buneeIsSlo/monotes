@@ -6,6 +6,15 @@ import { Authenticated, Unauthenticated } from "convex/react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import SyncModal from "./sync-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface NotesMetadataBarProps {
   lastEdited?: number;
@@ -26,6 +35,7 @@ export default function NotesMetadataBar({
 }: NotesMetadataBarProps) {
   const router = useRouter();
   const [syncModalOpen, setSyncModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const formatLastEdited = (timestamp: number) => {
     try {
@@ -66,7 +76,7 @@ export default function NotesMetadataBar({
             <div className="">
               <Unauthenticated>
                 <button
-                  onClick={() => router.push("/signin")}
+                  onClick={() => setAuthModalOpen(true)}
                   className="text-xs rounded-md hover:bg-muted/80 transition-colors cursor-pointer flex items-center gap-2"
                   title="Sign in to sync to cloud"
                 >
@@ -110,6 +120,24 @@ export default function NotesMetadataBar({
           noteId={noteId}
         />
       )}
+
+      <Dialog open={authModalOpen} onOpenChange={setAuthModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in required</DialogTitle>
+            <DialogDescription>
+              To sync your notes to the cloud and access them from anywhere, you
+              need to sign in.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setAuthModalOpen(false)}>
+              Stay Local
+            </Button>
+            <Button onClick={() => router.push("/signin")}>Sign In</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </React.Fragment>
   );
 }

@@ -9,10 +9,14 @@ import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
 import { useSidebar } from "@/components/ui/sidebar";
 import SettingsTrigger from "@/components/settings/settings-trigger";
+import { useDistractionFree } from "@/contexts/distraction-free-context";
+import { useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const router = useRouter();
   const { toggleSidebar } = useSidebar();
+  const { isDistracted, resetDistraction } = useDistractionFree();
 
   const onCreateNew = async () => {
     const slug = generateSlug();
@@ -20,8 +24,24 @@ export default function Navbar() {
     router.push(`/${note.id}`);
   };
 
+  useEffect(() => {
+    const handleMouseMove = () => {
+      resetDistraction();
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [resetDistraction]);
+
   return (
-    <nav className="flex items-center justify-between fixed top-0 left-0 w-full p-2">
+    <nav
+      className={cn(
+        "flex items-center justify-between fixed top-0 left-0 w-full p-2 transition-opacity duration-300",
+        isDistracted ? "opacity-15" : "opacity-100"
+      )}
+    >
       <Button
         variant="ghost"
         size="icon"

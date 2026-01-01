@@ -13,6 +13,7 @@ import { useDebouncedCloudSync } from "@/lib/sync-engine";
 import { useNoteSync } from "@/contexts/note-sync-context";
 import NotesMetadataBar from "./notes-metadata-bar";
 import { useEditorSettings } from "@/contexts/editor-settings-context";
+import { useDistractionFree } from "@/contexts/distraction-free-context";
 
 interface NotesEditorProps {
   noteId: string;
@@ -28,6 +29,7 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
   );
   const { registerSync, unregisterSync } = useNoteSync();
   const { settings } = useEditorSettings();
+  const { triggerDistraction } = useDistractionFree();
 
   // Track applied Vim mappings to cleanup later
   const appliedMappings = useRef<{ lhs: string; mode: string }[]>([]);
@@ -118,7 +120,10 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
           placeholder={"Start typing"}
           className="cm-container md:max-w-4xl"
           value={note?.content ?? ""}
-          onChange={setMarkdown}
+          onChange={(value) => {
+            setMarkdown(value);
+            triggerDistraction();
+          }}
           extensions={extensions}
           basicSetup={{
             lineNumbers: settings.lineNumbers,

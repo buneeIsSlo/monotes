@@ -3,6 +3,7 @@
 import NotesSidebar from "@/components/notes/notes-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { NoteSyncProvider } from "@/contexts/note-sync-context";
+import { DistractionFreeProvider } from "@/contexts/distraction-free-context";
 
 export default function NotesLayout({
   children,
@@ -10,11 +11,13 @@ export default function NotesLayout({
   children: React.ReactNode;
 }) {
   return (
-    <NoteSyncProvider>
-      <SidebarProvider>
-        <NotesSidebar />
-        <SidebarInset>{children}</SidebarInset>
-      </SidebarProvider>
-    </NoteSyncProvider>
+    <DistractionFreeProvider>
+      <NoteSyncProvider>
+        <SidebarProvider>
+          <NotesSidebar />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
+      </NoteSyncProvider>
+    </DistractionFreeProvider>
   );
 }

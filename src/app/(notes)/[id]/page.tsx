@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "@/app/(notes)/[id]/navbar";
+import Navbar from "@/app/(notes)/navbar";
 import NotesEditor from "@/components/notes/notes-editor";
 import { useParams } from "next/navigation";
 import { useLocalNote } from "@/hooks/useLocalNote";

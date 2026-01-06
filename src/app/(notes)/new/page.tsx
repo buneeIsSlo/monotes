@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { createNewNote } from "@/lib/local-notes";
 import { generateSlug } from "@/lib/ids";
 
-export default function Home() {
+export default function NewNote() {
   const router = useRouter();
 
   useEffect(() => {

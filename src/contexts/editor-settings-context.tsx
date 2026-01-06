@@ -6,7 +6,9 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export interface EditorSettings {
   vimMode: boolean;
@@ -48,6 +50,7 @@ export function EditorSettingsProvider({
 }) {
   const [settings, setSettings] = useState<EditorSettings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -73,9 +76,22 @@ export function EditorSettingsProvider({
     []
   );
 
+  // Compute effective settings, disabling vim mode on mobile
+  const effectiveSettings = useMemo(
+    () => ({
+      ...settings,
+      vimMode: settings.vimMode && !isMobile,
+    }),
+    [settings, isMobile]
+  );
+
   return (
     <EditorSettingsContext.Provider
-      value={{ settings, updateSetting, isLoading: !mounted }}
+      value={{
+        settings: effectiveSettings,
+        updateSetting,
+        isLoading: !mounted,
+      }}
     >
       {children}
     </EditorSettingsContext.Provider>

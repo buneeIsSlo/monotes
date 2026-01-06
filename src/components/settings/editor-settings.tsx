@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditorSettings } from "@/contexts/editor-settings-context";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -14,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 export default function EditorSettings() {
   const { settings, updateSetting, isLoading } = useEditorSettings();
+  const isMobile = useIsMobile();
 
   if (isLoading) return null;
 
@@ -115,13 +117,16 @@ export default function EditorSettings() {
           <div className="space-y-0.5">
             <h3 className="text-sm font-medium">Vim Mode</h3>
             <p className="text-xs text-muted-foreground">
-              Enable Vim keybindings for the editor.
+              {isMobile
+                ? "Vim mode is disabled on mobile devices for better usability."
+                : "Enable Vim keybindings for the editor."}
             </p>
           </div>
           <Switch
             id="vim-mode"
             checked={settings.vimMode}
             onCheckedChange={(checked) => updateSetting("vimMode", checked)}
+            disabled={isMobile}
           />
         </div>
 

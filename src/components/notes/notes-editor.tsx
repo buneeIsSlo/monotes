@@ -12,6 +12,7 @@ import { useLocalNote } from "@/hooks/useLocalNote";
 import { useDebouncedCloudSync } from "@/lib/sync-engine";
 import { useNoteSync } from "@/contexts/note-sync-context";
 import NotesMetadataBar from "./notes-metadata-bar";
+import WelcomeDialog from "./welcome-dialog";
 import { useEditorSettings } from "@/contexts/editor-settings-context";
 import { useDistractionFree } from "@/contexts/distraction-free-context";
 
@@ -108,6 +109,7 @@ export default function NotesEditor({ noteId }: NotesEditorProps) {
 
   return (
     <div className="editor-shell" style={{ fontSize: settings.fontSize }}>
+      <WelcomeDialog />
       <div className="py-12">
         <NotesMetadataBar
           lastEdited={note?.updatedAt}

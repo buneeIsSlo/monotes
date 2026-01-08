@@ -2,6 +2,7 @@
 
 import { useState, type MouseEvent } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
@@ -83,7 +84,7 @@ export default function NotesSidebar() {
     console.log("Search clicked");
   };
 
-  const userEmail = currentUser?.email || null;
+  const displayName = currentUser?.name || currentUser?.email || "User";
   const currentNoteId = pathname?.replace(/^\//, "") || null;
 
   const handleNoteClick = async (
@@ -192,6 +193,7 @@ export default function NotesSidebar() {
                       className="w-36"
                       side="bottom"
                       align="start"
+                      collisionPadding={10}
                     >
                       <DropdownMenuItem onSelect={() => setNoteToDelete(n.id)}>
                         <Trash className="text-destructive" />
@@ -256,18 +258,28 @@ export default function NotesSidebar() {
           {currentUser && (
             <div className="flex items-center gap-2 w-full">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <div className="flex items-center justify-center size-8 rounded-full bg-sidebar-accent shrink-0">
-                  <User className="size-4" />
+                <div className="flex items-center justify-center size-8 rounded-full bg-sidebar-accent shrink-0 overflow-hidden">
+                  {currentUser.image ? (
+                    <Image
+                      src={currentUser.image}
+                      alt={displayName}
+                      width={32}
+                      height={32}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <User className="size-4" />
+                  )}
                 </div>
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[10px] text-muted-foreground leading-none">
                     Signed In as
                   </span>
                   <span
                     className="text-sm font-medium truncate text-ellipsis"
-                    title={userEmail || "User"}
+                    title={displayName}
                   >
-                    {userEmail || "User"}
+                    {displayName}
                   </span>
                 </div>
               </div>

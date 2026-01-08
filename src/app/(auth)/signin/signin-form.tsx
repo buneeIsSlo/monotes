@@ -1,170 +1,86 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import type React from "react";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader, Notebook } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-
-const signinSchema = z.object({
-  email: z.email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-});
-
-type SigninValues = z.infer<typeof signinSchema>;
 
 export function SigninForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [step, setStep] = useState<"signIn" | "signUp">("signIn");
   const { signIn } = useAuthActions();
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<SigninValues>({
-    resolver: zodResolver(signinSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
-  const onSubmit = async (values: SigninValues) => {
+  const handleSignIn = async () => {
+    setIsLoading(true);
     try {
-      await signIn("password", { ...values, flow: step });
-      toast.success(
-        step === "signIn"
-          ? "Signed in Successfully"
-          : "Account created Successfully"
-      );
-      router.push("/");
+      await signIn("google");
     } catch (error) {
       console.error(error);
-      if (
-        error instanceof Error &&
-        (error.message.includes("InvalidAccountId") ||
-          error.message.includes("InvalidSecret"))
-      ) {
-        form.setError("root", {
-          type: "manual",
-          message: "Invalid credentials",
-        });
-      } else {
-        toast.error("Oops, something went wrong. Please try again.");
-      }
+      toast.error("Failed to sign in with Google. Please try again.");
     } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-6"
-        >
-          <div className="flex flex-col items-center gap-2">
-            <a
-              href="#"
-              className="flex flex-col items-center gap-2 font-medium"
-            >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <Notebook className="size-6" />
-              </div>
-              <span className="sr-only">Monotes</span>
-            </a>
-            <h1 className="text-xl font-bold">Welcome to Monotes</h1>
-            <div className="text-center text-sm">
-              Enter your credentials to get started
-            </div>
+      <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 font-medium">
+          <div className="flex size-8 items-center justify-center rounded-md">
+            <Notebook className="size-6" />
           </div>
-          <div className="flex flex-col gap-6">
-            {/* Email */}
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="m@example.com"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {/* Password */}
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Your password"
-                      autoComplete="current-password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {form.formState.errors.root && (
-              <div className="text-sm text-destructive">
-                {form.formState.errors.root.message}
-              </div>
-            )}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={form.formState.isSubmitting}
-            >
-              {form.formState.isSubmitting && (
-                <Loader className="animate-spin" />
-              )}
-              {step === "signIn" ? "Sign In" : "Create Account"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-      <div className="text-muted-foreground text-center text-xs text-balance">
+          <span className="sr-only">Monotes</span>
+        </div>
+        <h1 className="text-xl font-bold">Welcome to Monotes</h1>
+        <div className="text-center text-sm text-muted-foreground">
+          Sign in to sync your notes across devices
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
         <Button
-          variant="link"
-          type="button"
-          className="w-full text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => {
-            setStep(step === "signIn" ? "signUp" : "signIn");
-            form.reset();
-          }}
+          variant="outline"
+          className="w-full"
+          onClick={handleSignIn}
+          disabled={isLoading}
         >
-          {step === "signIn"
-            ? "Don't have an account? Create one."
-            : "Already have an account? Sign In."}
+          {isLoading ? (
+            <Loader className="mr-2 size-4 animate-spin" />
+          ) : (
+            <svg
+              className="mr-2 size-4"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
+            >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
+              ></path>
+            </svg>
+          )}
+          Continue with Google
         </Button>
+      </div>
+      <div className="text-muted-foreground text-center text-xs text-balance">
+        By clicking continue, you agree to our{" "}
+        <a href="#" className="underline hover:text-primary">
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a href="#" className="underline hover:text-primary">
+          Privacy Policy
+        </a>
+        .
       </div>
     </div>
   );

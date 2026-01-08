@@ -18,9 +18,13 @@ export const currentUser = query({
       .withIndex("by_id", (q) => q.eq("_id", userId))
       .first();
 
+    const derivedName = user.name || user.email?.split("@")[0] || null;
+
     return {
       ...user,
       email: account?.email || null,
+      name: derivedName,
+      image: user.image || null,
     };
   },
 });

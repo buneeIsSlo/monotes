@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { FileText, Paintbrush, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EditorSettings from "./editor-settings";
+import GeneralSettings from "./general-settings";
 import { cn } from "@/lib/utils";
 
 const SETTINGS_TAB_STORAGE_KEY = "monotes-settings-tab";
@@ -40,28 +41,8 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
 
   const content = (
     <>
-      <TabsContent
-        value="general"
-        className="px-6 py-6 m-0 space-y-4 outline-none"
-      >
-        <div className="flex flex-col gap-4">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-1">General Settings</h3>
-              <p className="text-xs text-muted-foreground">
-                Manage your account and app-wide preferences.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="border-border/50 bg-muted/20 h-24 rounded-xl border border-dashed flex items-center justify-center text-xs text-muted-foreground">
-                Coming soon...
-              </div>
-              <div className="border-border/50 bg-muted/20 h-24 rounded-xl border border-dashed flex items-center justify-center text-xs text-muted-foreground">
-                Coming soon...
-              </div>
-            </div>
-          </div>
-        </div>
+      <TabsContent value="general" className="px-6 py-6 m-0 outline-none">
+        <GeneralSettings />
       </TabsContent>
       <TabsContent
         value="appearance"

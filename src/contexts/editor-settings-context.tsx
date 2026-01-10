@@ -8,7 +8,7 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTouchDevice } from "@/hooks/use-touch-device";
 
 export interface EditorSettings {
   vimMode: boolean;
@@ -50,7 +50,7 @@ export function EditorSettingsProvider({
 }) {
   const [settings, setSettings] = useState<EditorSettings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
-  const isMobile = useIsMobile();
+  const isTouchDevice = useIsTouchDevice();
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -76,13 +76,13 @@ export function EditorSettingsProvider({
     []
   );
 
-  // Compute effective settings, disabling vim mode on mobile
+  // Compute effective settings, disabling vim mode on touch devices
   const effectiveSettings = useMemo(
     () => ({
       ...settings,
-      vimMode: settings.vimMode && !isMobile,
+      vimMode: settings.vimMode && !isTouchDevice,
     }),
-    [settings, isMobile]
+    [settings, isTouchDevice]
   );
 
   return (

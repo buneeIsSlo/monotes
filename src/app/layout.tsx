@@ -37,7 +37,7 @@ export default function RootLayout({
           <ThemeProvider
             attribute="class"
             defaultTheme="light"
-            enableSystem={false}
+            enableSystem={true}
             storageKey="monotes-theme"
             disableTransitionOnChange
           >

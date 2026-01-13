@@ -3,11 +3,18 @@ import { getNote, saveNote } from "@/lib/local-notes";
 import type { NoteContent } from "@/lib/local-db";
 import { isInCreationWhitelist } from "@/lib/creation-whitelist";
 import { useDebounced } from "./useDebounced";
+import { useCrossTabSync } from "./useCrossTabSync";
 
 export function useLocalNote(slug: string) {
   const [note, setNote] = useState<NoteContent | null | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const lastSavedContentRef = useRef<string>("");
+
+  const handleCrossTabUpdate = useCallback((content: string) => {
+    setNote((prev) => (prev ? { ...prev, content } : prev));
+  }, []);
+
+  const { broadcast } = useCrossTabSync(slug, handleCrossTabUpdate);
 
   useEffect(() => {
     if (!slug) {
@@ -77,8 +84,11 @@ export function useLocalNote(slug: string) {
       // Always trigger debounced save to clear any pending timers
       // The actual save will be skipped if content hasn't changed
       debouncedSave(content);
+
+      // Broadcast the change to other tabs
+      broadcast(content);
     },
-    [debouncedSave]
+    [debouncedSave, broadcast]
   );
 
   return useMemo(

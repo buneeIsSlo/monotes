@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { FileText, Paintbrush, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EditorSettings from "./editor-settings";
+import AppearanceSettings from "./appearance-settings";
 import GeneralSettings from "./general-settings";
 import { cn } from "@/lib/utils";
 
@@ -55,9 +56,7 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
               Customize the look and feel of the application.
             </p>
           </div>
-          <div className="border-border/50 bg-muted/20 h-32 rounded-xl border border-dashed flex items-center justify-center text-xs text-muted-foreground">
-            Coming soon...
-          </div>
+          <AppearanceSettings />
         </div>
       </TabsContent>
       <TabsContent value="editor" className="px-6 py-6 m-0 outline-none">

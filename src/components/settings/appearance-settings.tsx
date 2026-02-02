@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2, RotateCcw } from "lucide-react";
+import { Check, Loader2, RotateCcw, X } from "lucide-react";
 import { useTheme } from "next-themes";
 import { BUILT_IN_THEMES, fetchThemeFromUrl } from "@/lib/themes";
 import { useColorTheme } from "@/components/theme-provider";
@@ -41,7 +41,7 @@ function ColorPreview({ colors }: { colors: PreviewColors | null }) {
       {colorList.map((color, i) => (
         <div
           key={i}
-          className="size-3 rounded-full border border-border/50"
+          className="size-4 rounded-full border-2 border-border"
           style={color.value ? { backgroundColor: color.value } : undefined}
           title={color.label}
         />
@@ -52,7 +52,13 @@ function ColorPreview({ colors }: { colors: PreviewColors | null }) {
 
 export default function AppearanceSettings() {
   const { activeTheme, setActiveTheme } = useColorTheme();
-  const { themes, getPreviewColors } = useThemes();
+  const {
+    themes,
+    customThemeNames,
+    getPreviewColors,
+    addCustomTheme,
+    removeCustomTheme,
+  } = useThemes();
   const { resolvedTheme } = useTheme();
   const [customThemeUrl, setCustomThemeUrl] = useState("");
   const [isLoadingCustom, setIsLoadingCustom] = useState(false);
@@ -74,6 +80,7 @@ export default function AppearanceSettings() {
     try {
       const theme = await fetchThemeFromUrl(customThemeUrl);
       if (theme) {
+        addCustomTheme(theme);
         setActiveTheme(theme);
         setCustomThemeUrl("");
       } else {
@@ -85,6 +92,19 @@ export default function AppearanceSettings() {
       setIsLoadingCustom(false);
     }
   };
+
+  const handleRemoveCustomTheme = (themeName: string) => {
+    // If the active theme is being removed, reset to default
+    if (activeTheme?.name === themeName) {
+      setActiveTheme(null);
+    }
+    removeCustomTheme(themeName);
+  };
+
+  // Get custom themes for display
+  const customThemeEntries = Array.from(themes.entries()).filter(([name]) =>
+    customThemeNames.has(name),
+  );
 
   return (
     <div className="space-y-6">
@@ -107,7 +127,7 @@ export default function AppearanceSettings() {
               "group relative flex aspect-[1.6] flex-col items-start justify-between rounded-lg border-2 p-3 transition-all hover:bg-accent/50",
               activeTheme === null
                 ? "border-primary"
-                : "border-border/50 hover:border-border"
+                : "border-border/50 hover:border-border",
             )}
           >
             <div className="flex w-full justify-between">
@@ -136,7 +156,7 @@ export default function AppearanceSettings() {
                   isActive
                     ? "border-primary"
                     : "border-border/50 hover:border-border",
-                  state?.isLoading && "opacity-70 cursor-wait"
+                  state?.isLoading && "opacity-70 cursor-wait",
                 )}
               >
                 <div className="flex w-full justify-between">
@@ -164,6 +184,51 @@ export default function AppearanceSettings() {
                   </div>
                 )}
               </button>
+            );
+          })}
+
+          {/* Custom Imported Themes */}
+          {customThemeEntries.map(([themeName, state]) => {
+            const isActive = activeTheme?.name === themeName;
+            const previewColors = getPreviewColors(themeName, mode);
+
+            return (
+              <div key={themeName} className="relative">
+                <button
+                  onClick={() => handleThemeSelect(themeName)}
+                  className={cn(
+                    "group relative flex aspect-[1.6] w-full flex-col items-start justify-between rounded-lg border-2 p-3 transition-all hover:bg-accent/50",
+                    isActive
+                      ? "border-primary"
+                      : "border-border/50 hover:border-border",
+                  )}
+                >
+                  <div className="flex w-full justify-between">
+                    <ColorPreview colors={previewColors} />
+                    {isActive && (
+                      <div className="rounded-full bg-primary p-0.5 text-primary-foreground shadow-sm">
+                        <Check className="size-3" />
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-xs font-medium text-left line-clamp-1 w-full pr-5">
+                    {state.theme?.name || themeName}
+                  </span>
+                </button>
+
+                {/* Remove button for custom themes */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRemoveCustomTheme(themeName);
+                  }}
+                  className="absolute bottom-3 right-3 rounded-full p-0.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                  title="Remove theme"
+                >
+                  <X className="size-3" />
+                </button>
+              </div>
             );
           })}
         </div>

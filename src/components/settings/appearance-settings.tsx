@@ -58,6 +58,7 @@ export default function AppearanceSettings() {
     getPreviewColors,
     addCustomTheme,
     removeCustomTheme,
+    existingTheme,
   } = useThemes();
   const { resolvedTheme } = useTheme();
   const [customThemeUrl, setCustomThemeUrl] = useState("");
@@ -80,6 +81,10 @@ export default function AppearanceSettings() {
     try {
       const theme = await fetchThemeFromUrl(customThemeUrl);
       if (theme) {
+        if (existingTheme(theme.name)) {
+          setError("Theme with that name already exists");
+          return;
+        }
         addCustomTheme(theme);
         setActiveTheme(theme);
         setCustomThemeUrl("");

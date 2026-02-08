@@ -35,6 +35,7 @@ interface UseThemesResult {
   ) => PreviewColors | null;
   addCustomTheme: (theme: ThemePreset) => void;
   removeCustomTheme: (themeName: string) => void;
+  existingTheme: (themeName: string) => boolean;
 }
 
 function loadCache(): ThemeCache {
@@ -235,6 +236,13 @@ export function useThemes(): UseThemesResult {
     });
   }, []);
 
+  const existingTheme = useCallback(
+    (themeName: string): boolean => {
+      return themes.has(themeName);
+    },
+    [themes],
+  );
+
   return useMemo(
     () => ({
       themes,
@@ -244,6 +252,7 @@ export function useThemes(): UseThemesResult {
       getPreviewColors,
       addCustomTheme,
       removeCustomTheme,
+      existingTheme,
     }),
     [
       themes,
@@ -253,6 +262,7 @@ export function useThemes(): UseThemesResult {
       getPreviewColors,
       addCustomTheme,
       removeCustomTheme,
+      existingTheme,
     ],
   );
 }

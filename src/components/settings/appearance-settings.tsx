@@ -166,16 +166,18 @@ export default function AppearanceSettings() {
               >
                 <div className="flex w-full justify-between">
                   <ColorPreview colors={previewColors} />
+                </div>
+
+                <div className="flex w-full justify-between">
+                  <span className="text-xs font-medium text-left line-clamp-1 w-full pr-5">
+                    {theme.name}
+                  </span>
                   {isActive && (
                     <div className="rounded-full bg-primary p-0.5 text-primary-foreground shadow-sm">
                       <Check className="size-3" />
                     </div>
                   )}
                 </div>
-
-                <span className="text-xs font-medium text-left line-clamp-1 w-full">
-                  {theme.name}
-                </span>
 
                 {state?.isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-background/50">
@@ -210,28 +212,29 @@ export default function AppearanceSettings() {
                 >
                   <div className="flex w-full justify-between">
                     <ColorPreview colors={previewColors} />
+                    {/* Remove button for custom themes */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveCustomTheme(themeName);
+                      }}
+                      className="absolute top-3 right-3 rounded-full p-0.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
+                      title="Remove theme"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+
+                  <div className="flex w-full justify-between">
+                    <span className="text-xs font-medium text-left line-clamp-1 w-full pr-5">
+                      {state.theme?.name || themeName}
+                    </span>
                     {isActive && (
                       <div className="rounded-full bg-primary p-0.5 text-primary-foreground shadow-sm">
                         <Check className="size-3" />
                       </div>
                     )}
                   </div>
-
-                  <span className="text-xs font-medium text-left line-clamp-1 w-full pr-5">
-                    {state.theme?.name || themeName}
-                  </span>
-                </button>
-
-                {/* Remove button for custom themes */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemoveCustomTheme(themeName);
-                  }}
-                  className="absolute bottom-3 right-3 rounded-full p-0.5 text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-colors"
-                  title="Remove theme"
-                >
-                  <X className="size-3" />
                 </button>
               </div>
             );

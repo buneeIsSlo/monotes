@@ -50,6 +50,21 @@ function ColorPreview({ colors }: { colors: PreviewColors | null }) {
   );
 }
 
+function ThemeSearchEmptyState({ query }: { query: string }) {
+  const trimmedQuery = query.trim();
+
+  return (
+    <div className="mt-2 rounded-lg border border-dashed border-border/60 bg-muted/10 px-3 py-2 text-xs text-muted-foreground">
+      <p className="font-medium">
+        {trimmedQuery
+          ? `No themes found for "${trimmedQuery}".`
+          : "No themes match your search."}
+      </p>
+      <p>Try a different name or clear the search filter.</p>
+    </div>
+  );
+}
+
 export default function AppearanceSettings() {
   const { activeTheme, setActiveTheme } = useColorTheme();
   const {
@@ -64,6 +79,7 @@ export default function AppearanceSettings() {
   const [customThemeUrl, setCustomThemeUrl] = useState("");
   const [isLoadingCustom, setIsLoadingCustom] = useState(false);
   const [error, setError] = useState("");
+  const [themeSearch, setThemeSearch] = useState("");
 
   const mode = resolvedTheme === "dark" ? "dark" : "light";
 
@@ -111,20 +127,47 @@ export default function AppearanceSettings() {
     customThemeNames.has(name),
   );
 
+  const searchQuery = themeSearch.trim().toLowerCase();
+  const hasSearch = searchQuery.length > 0;
+
+  const filteredBuiltInThemes = hasSearch
+    ? BUILT_IN_THEMES.filter((theme) =>
+        theme.name.toLowerCase().includes(searchQuery),
+      )
+    : BUILT_IN_THEMES;
+
+  const filteredCustomThemeEntries = hasSearch
+    ? customThemeEntries.filter(([themeName, state]) => {
+        const name = (state.theme?.name || themeName).toLowerCase();
+        return name.includes(searchQuery);
+      })
+    : customThemeEntries;
+
+  const hasThemeResults =
+    filteredBuiltInThemes.length > 0 || filteredCustomThemeEntries.length > 0;
+
+  const showEmptyState = hasSearch && !hasThemeResults;
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <Label>Appearance Mode</Label>
-        <div className="flex items-center justify-between rounded-lg border border-border/50 bg-muted/20 p-3">
-          <div className="text-sm text-muted-foreground">
-            Switch between light, dark, and system usage.
-          </div>
+        <Label>Theme &amp; Mode</Label>
+        <div className="flex items-center gap-3 rounded-lg">
+          <Input
+            placeholder="Search themes..."
+            value={themeSearch}
+            onChange={(e) => setThemeSearch(e.target.value)}
+            className="h-8 flex-1 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
           <ThemeToggeler />
         </div>
       </div>
 
       <div className="space-y-2">
         <Label>Theme Color</Label>
+
+        {showEmptyState && <ThemeSearchEmptyState query={themeSearch} />}
+
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           <button
             onClick={() => setActiveTheme(null)}
@@ -146,7 +189,7 @@ export default function AppearanceSettings() {
             <span className="text-xs font-medium">Default</span>
           </button>
 
-          {BUILT_IN_THEMES.map((theme) => {
+          {filteredBuiltInThemes.map((theme) => {
             const isActive = activeTheme?.name === theme.name;
             const state = themes.get(theme.name);
             const previewColors = getPreviewColors(theme.name, mode);
@@ -195,7 +238,7 @@ export default function AppearanceSettings() {
           })}
 
           {/* Custom Imported Themes */}
-          {customThemeEntries.map(([themeName, state]) => {
+          {filteredCustomThemeEntries.map(([themeName, state]) => {
             const isActive = activeTheme?.name === themeName;
             const previewColors = getPreviewColors(themeName, mode);
 

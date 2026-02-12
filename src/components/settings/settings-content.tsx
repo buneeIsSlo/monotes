@@ -28,7 +28,7 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
 
   useEffect(() => {
     const lastOpenedTab = sessionStorage.getItem(
-      SETTINGS_TAB_STORAGE_KEY
+      SETTINGS_TAB_STORAGE_KEY,
     ) as TabType;
     if (lastOpenedTab) {
       setActiveTab(lastOpenedTab);
@@ -49,9 +49,9 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
         value="appearance"
         className="px-6 py-6 m-0 space-y-4 outline-none"
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
-            <h3 className="text-sm font-medium mb-1">Appearance Settings</h3>
+            <h3 className="text-sm font-medium mb-1">Appearance</h3>
             <p className="text-xs text-muted-foreground">
               Customize the look and feel of the application.
             </p>
@@ -72,7 +72,7 @@ export function SettingsContent({ isMobile }: SettingsContentPros) {
         value={value}
         className={cn(
           "justify-start text-primary/80 rounded-md px-3 text-sm transition-all hover:bg-muted/80 data-[state=active]:bg-muted data-[state=active]:text-foreground border-none h-9 flex-none",
-          isDesktop ? "w-full" : "shrink-0"
+          isDesktop ? "w-full" : "shrink-0",
         )}
       >
         <div className="flex items-center gap-2">

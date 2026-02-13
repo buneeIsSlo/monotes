@@ -1,7 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ButtonGroup } from "@/components/ui/button-group";
+import {
+  ButtonGroup,
+  ButtonGroupSeparator,
+} from "@/components/ui/button-group";
 import { PlusIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
 import ThemeToggeler from "@/components/theme-toggeler";
 import { useRouter } from "next/navigation";
@@ -39,28 +42,30 @@ export default function Navbar() {
     <nav
       className={cn(
         "flex items-center justify-between fixed top-0 left-0 w-full p-2 transition-opacity duration-300",
-        isDistracted ? "opacity-15" : "opacity-100"
+        isDistracted ? "opacity-15" : "opacity-100",
       )}
     >
       <Button
-        variant="ghost"
-        size="icon"
+        variant="outline"
+        size="icon-lg"
         onClick={toggleSidebar}
         aria-label="Toggle sidebar"
       >
         <HamburgerMenuIcon className="size-4" />
       </Button>
 
-      <ButtonGroup className="gap-2">
+      <ButtonGroup className="rounded-inherit">
         <Button
-          // variant="ghost"
-          size="icon"
+          variant="outline"
+          size="icon-lg"
           aria-label="New note"
           onClick={onCreateNew}
         >
           <PlusIcon className="size-4" />
         </Button>
+        <ButtonGroupSeparator />
         <SettingsTrigger />
+        <ButtonGroupSeparator />
         <ThemeToggeler />
       </ButtonGroup>
     </nav>

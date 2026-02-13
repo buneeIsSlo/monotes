@@ -33,8 +33,8 @@ export default function ThemeToggeler() {
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
+      variant="outline"
+      size="icon-lg"
       onClick={cycleTheme}
       aria-label="Toggle theme"
     >

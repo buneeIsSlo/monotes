@@ -61,7 +61,7 @@ export default function NotesSidebar() {
   const notes =
     useLiveQuery(
       () => getDB().notes.orderBy("updatedAt").reverse().toArray(),
-      []
+      [],
     ) || [];
 
   const handleSignOut = async () => {
@@ -89,7 +89,7 @@ export default function NotesSidebar() {
 
   const handleNoteClick = async (
     e: MouseEvent<HTMLAnchorElement>,
-    targetNoteId: string
+    targetNoteId: string,
   ) => {
     // Get current note ID from pathname
     const currentNoteIdFromPath = pathname?.replace(/^\//, "") || null;
@@ -124,7 +124,7 @@ export default function NotesSidebar() {
         <div className="flex items-center justify-between px-1.5 py-1.5">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-lg"
             className="size-7"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
@@ -170,7 +170,7 @@ export default function NotesSidebar() {
                       className={cn(
                         "[&:hover_span]:text-foreground group",
                         currentNoteId === n.id &&
-                          "bg-accent [&>span]:text-foreground border"
+                          "bg-accent [&>span]:text-foreground border",
                       )}
                     >
                       <span className="truncate text-sidebar-foreground/70 transition-colors">

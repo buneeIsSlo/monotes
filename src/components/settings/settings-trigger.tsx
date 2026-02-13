@@ -37,8 +37,8 @@ export default function SettingsTrigger() {
   return (
     <React.Fragment>
       <Button
-        variant="ghost"
-        size="icon"
+        variant="outline"
+        size="icon-lg"
         aria-label="settings"
         onClick={() => setOpen(true)}
       >

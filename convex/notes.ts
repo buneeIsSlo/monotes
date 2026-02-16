@@ -96,6 +96,33 @@ export const listUserNotes = query({
 });
 
 /*
+ * Search user's notes by content (case-insensitive)
+ */
+export const searchNotes = query({
+  args: {
+    searchQuery: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (userId === null) {
+      return [];
+    }
+
+    const notes = await ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+
+    const query = args.searchQuery.toLowerCase();
+
+    return notes
+      .filter((note) => !note.deletedAt)
+      .filter((note) => note.content.toLowerCase().includes(query))
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+  },
+});
+
+/*
  * Update an existing note's content
  */
 

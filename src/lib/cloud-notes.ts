@@ -106,6 +106,16 @@ export function useListCloudNotes() {
 }
 
 /**
+ * Hook to search user's cloud notes
+ */
+export function useSearchCloudNotes(searchQuery: string | undefined) {
+  return useQuery(
+    api.notes.searchNotes,
+    searchQuery ? { searchQuery } : "skip"
+  );
+}
+
+/**
  * Hook to delete a note from cloud (soft delete)
  */
 export function useDeleteCloudNote() {

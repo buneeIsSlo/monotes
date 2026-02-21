@@ -3,7 +3,7 @@ import Navbar from "@/app/(notes)/navbar";
 import NotesSearchList from "./notes-search-list";
 
 export const metadata: Metadata = {
-  title: "Monotes - Modern Distraction-Free Note Taking App",
+  title: "Gonotes - Modern Distraction-Free Note Taking App",
   description:
     "A modern, distraction-free note-taking application with markdown support, cloud synchronization, and a clean writing experience. Built for writers, developers, and anyone who values focused productivity.",
   keywords: [
